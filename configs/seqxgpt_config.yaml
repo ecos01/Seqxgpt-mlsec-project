@@ -1,0 +1,41 @@
+# SeqXGPT Model Configuration
+
+# Model architecture
+model:
+  input_dim: 3  # Number of features (log_probs, surprisal, entropy)
+  hidden_dim: 128
+  num_cnn_layers: 3
+  kernel_size: 3
+  num_attention_heads: 4
+  dropout: 0.3
+  max_seq_length: 256
+
+# Training parameters
+training:
+  batch_size: 64
+  learning_rate: 0.0001
+  num_epochs: 20
+  early_stopping_patience: 5
+
+# Data configuration
+data:
+  data_dir: "dataset/SeqXGPT-Bench"
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+  seed: 42
+
+# LLM feature extraction
+llm:
+  model_name: "gpt2"  # Can be: gpt2, gpt2-medium, gpt2-large, EleutherAI/gpt-neo-125M, etc.
+  max_length: 256
+  cache_dir: "features/cache"
+
+# Feature types to use
+feature_types:
+  - log_probs
+  - surprisal
+  - entropy
+
+# Whether to recompute features even if cached
+force_recompute_features: false

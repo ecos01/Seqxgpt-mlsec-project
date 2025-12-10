@@ -1,0 +1,23 @@
+# BERT Detector Configuration
+
+# Model architecture
+model:
+  model_name: "bert-base-uncased"  # Can be: bert-base-uncased, roberta-base, distilbert-base-uncased
+  num_labels: 2
+  dropout: 0.1
+
+# Training parameters
+training:
+  batch_size: 16
+  learning_rate: 0.00002  # 2e-5
+  num_epochs: 10
+  max_length: 512
+  early_stopping_patience: 3
+
+# Data configuration
+data:
+  data_dir: "dataset/SeqXGPT-Bench"
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+  seed: 42
