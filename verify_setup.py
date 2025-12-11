@@ -25,17 +25,17 @@ def check_imports():
     for package, name in required_packages.items():
         try:
             __import__(package)
-            print(f"✓ {name}")
+            print(f" {name}")
         except ImportError:
-            print(f"✗ {name} - NOT INSTALLED")
+            print(f" {name} - NOT INSTALLED")
             missing.append(name)
     
     if missing:
-        print(f"\n⚠ Missing packages: {', '.join(missing)}")
+        print(f"\n Missing packages: {', '.join(missing)}")
         print("Install with: pip install -r requirements.txt")
         return False
     
-    print("\n✓ All dependencies installed!")
+    print("\n All dependencies installed!")
     return True
 
 
@@ -48,7 +48,7 @@ def check_dataset():
     dataset_dir = Path("dataset/SeqXGPT-Bench")
     
     if not dataset_dir.exists():
-        print(f"✗ Dataset not found at {dataset_dir}")
+        print(f" Dataset not found at {dataset_dir}")
         return False
     
     required_files = [
@@ -67,15 +67,15 @@ def check_dataset():
             # Count lines
             with open(file_path, 'r', encoding='utf-8') as f:
                 num_lines = sum(1 for _ in f)
-            print(f"✓ {file}: {num_lines} samples")
+            print(f" {file}: {num_lines} samples")
         else:
-            print(f"✗ {file} - NOT FOUND")
+            print(f" {file} - NOT FOUND")
             all_found = False
     
     if not all_found:
         return False
     
-    print("\n✓ Dataset found and valid!")
+    print("\n Dataset found and valid!")
     return True
 
 
@@ -107,22 +107,22 @@ def check_structure():
     
     for dir_name in required_dirs:
         if Path(dir_name).exists():
-            print(f"✓ {dir_name}/")
+            print(f" {dir_name}/")
         else:
-            print(f"✗ {dir_name}/ - NOT FOUND")
+            print(f" {dir_name}/ - NOT FOUND")
             all_ok = False
     
     for file_name in required_files:
         if Path(file_name).exists():
-            print(f"✓ {file_name}")
+            print(f" {file_name}")
         else:
-            print(f"✗ {file_name} - NOT FOUND")
+            print(f" {file_name} - NOT FOUND")
             all_ok = False
     
     if not all_ok:
         return False
     
-    print("\n✓ Project structure is correct!")
+    print("\n Project structure is correct!")
     return True
 
 
@@ -145,21 +145,21 @@ def test_imports_modules():
         try:
             module = __import__(module_name, fromlist=[class_name])
             getattr(module, class_name)
-            print(f"✓ {module_name}.{class_name}")
+            print(f" {module_name}.{class_name}")
         except Exception as e:
-            print(f"✗ {module_name}.{class_name} - ERROR: {e}")
+            print(f" {module_name}.{class_name} - ERROR: {e}")
             all_ok = False
     
     if not all_ok:
         return False
     
-    print("\n✓ All modules can be imported!")
+    print("\n All modules can be imported!")
     return True
 
 
 def main():
     """Run all checks."""
-    print("\n🔍 VERIFYING PROJECT SETUP\n")
+    print("\n VERIFYING PROJECT SETUP\n")
     
     checks = [
         ("Dependencies", check_imports),
@@ -174,7 +174,7 @@ def main():
             result = check_func()
             results.append((name, result))
         except Exception as e:
-            print(f"\n✗ Error in {name}: {e}")
+            print(f"\n Error in {name}: {e}")
             results.append((name, False))
     
     # Summary
@@ -183,19 +183,19 @@ def main():
     print("=" * 60)
     
     for name, result in results:
-        status = "✓ PASS" if result else "✗ FAIL"
+        status = " PASS" if result else " FAIL"
         print(f"{status}: {name}")
     
     all_passed = all(result for _, result in results)
     
     if all_passed:
-        print("\n🎉 All checks passed! Project is ready to use.")
+        print("\n All checks passed! Project is ready to use.")
         print("\nNext steps:")
         print("  1. Train SeqXGPT: python train_seqxgpt.py")
         print("  2. Train BERT: python train_bert.py")
         print("  3. Evaluate: python eval.py")
     else:
-        print("\n⚠ Some checks failed. Please fix the issues above.")
+        print("\n Some checks failed. Please fix the issues above.")
         sys.exit(1)
 
 
