@@ -123,6 +123,10 @@ class SeqXGPTModel(nn.Module):
         if mask is not None:
             attn_weights = attn_weights.masked_fill(~mask.bool().unsqueeze(-1), float('-inf'))
         attn_weights = F.softmax(attn_weights, dim=1)
+        
+        # Handle NaN from softmax (when all values are -inf)
+        attn_weights = torch.nan_to_num(attn_weights, nan=1.0 / attn_weights.size(1))
+        
         pooled = torch.sum(x * attn_weights, dim=1)  # [B, H]
         
         # Classification

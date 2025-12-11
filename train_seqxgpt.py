@@ -88,8 +88,15 @@ def evaluate(model, dataloader, device):
             masks = masks.to(device)
             labels = labels.to(device)
             
+            # Replace NaN in features with 0
+            features = torch.nan_to_num(features, nan=0.0)
+            
             logits = model(features, masks)
             probs = torch.sigmoid(logits).squeeze(-1)
+            
+            # Replace NaN probabilities with 0.5 (neutral)
+            probs = torch.nan_to_num(probs, nan=0.5)
+            
             preds = (probs > 0.5).float()
             
             all_preds.extend(preds.cpu().numpy())
@@ -97,6 +104,10 @@ def evaluate(model, dataloader, device):
             all_labels.extend(labels.cpu().numpy())
     
     # Calculate metrics
+    import numpy as np
+    all_probs = np.array(all_probs)
+    all_probs = np.nan_to_num(all_probs, nan=0.5)  # Extra safety check
+    
     acc = accuracy_score(all_labels, all_preds)
     precision, recall, f1, _ = precision_recall_fscore_support(
         all_labels, all_preds, average='binary', zero_division=0
