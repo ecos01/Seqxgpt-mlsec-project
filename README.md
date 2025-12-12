@@ -435,7 +435,7 @@ If you use this project in your research, please cite:
   title = {AI Text Detection: SeqXGPT + BERT Pipeline},
   year = {2025},
   publisher = {GitHub},
-  url = {https://github.com/your-repo-url}
+  url = {https://github.com/ecos01/Seqxgpt-mlsec-project.git}
 }
 ```
 
