@@ -449,6 +449,3 @@ And the original SeqXGPT paper:
   year={2023}
 }
 ```
-
-
-``````
