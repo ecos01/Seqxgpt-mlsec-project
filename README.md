@@ -431,11 +431,12 @@ If you use this project in your research, please cite:
 
 ```bibtex
 @misc{seqxgpt-mlsec-2025,
-  author = {Eugenio},
-  title = {AI Text Detection: SeqXGPT + BERT Pipeline},
-  year = {2025},
-  publisher = {GitHub},
-  url = {https://github.com/ecos01/Seqxgpt-mlsec-project.git}
+  author= {Eugenio Cosimi},
+  title= {AI-Generated Text Detection with SeqXGPT-Style Features and a DistilBERT Baseline},
+  year= {2025},
+  howpublished = {\url{https://github.com/ecos01/Seqxgpt-mlsec-project}},
+  note= {GitHub repository [Software]},
+  urldate= {2025-12-12}
 }
 ```
 
