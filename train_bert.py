@@ -127,19 +127,22 @@ def main():
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
     else:
-        # Default configuration
+        # Default configuration - OPTIMIZED FOR SPEED
         config = {
             'model': {
-                'model_name': 'bert-base-uncased',
+                'model_name': 'distilbert-base-uncased',  # 2x faster than BERT
                 'num_labels': 2,
                 'dropout': 0.1
             },
             'training': {
-                'batch_size': 16,
-                'learning_rate': 2e-5,
-                'num_epochs': 10,
-                'max_length': 512,
-                'early_stopping_patience': 3
+                'batch_size': 32,  # Larger batch for speed
+                'learning_rate': 3e-5,
+                'num_epochs': 5,  # Fewer epochs, early stopping will handle it
+                'max_length': 256,  # Shorter sequences = faster
+                'early_stopping_patience': 2,
+                'max_train_samples': 10000,  # Limit samples for faster training
+                'max_val_samples': 2000,
+                'gradient_accumulation_steps': 2
             },
             'data': {
                 'data_dir': 'dataset/SeqXGPT-Bench',
@@ -179,6 +182,26 @@ def main():
     # Create datasets with tokenization
     train_texts, train_labels = train_dataset_raw.get_texts_and_labels()
     val_texts, val_labels = val_dataset_raw.get_texts_and_labels()
+    
+    # Limit samples for faster training
+    max_train = config['training'].get('max_train_samples', len(train_texts))
+    max_val = config['training'].get('max_val_samples', len(val_texts))
+    
+    if max_train < len(train_texts):
+        import random
+        random.seed(config['data']['seed'])
+        indices = random.sample(range(len(train_texts)), max_train)
+        train_texts = [train_texts[i] for i in indices]
+        train_labels = [train_labels[i] for i in indices]
+        print(f"Limited training samples to {max_train}")
+    
+    if max_val < len(val_texts):
+        import random
+        random.seed(config['data']['seed'])
+        indices = random.sample(range(len(val_texts)), max_val)
+        val_texts = [val_texts[i] for i in indices]
+        val_labels = [val_labels[i] for i in indices]
+        print(f"Limited validation samples to {max_val}")
     
     train_dataset = TextDataset(
         train_texts, train_labels, model.tokenizer,

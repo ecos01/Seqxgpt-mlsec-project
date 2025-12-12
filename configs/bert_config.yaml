@@ -1,18 +1,22 @@
 # BERT Detector Configuration
+# OPTIMIZED FOR FAST TRAINING ON CPU
 
 # Model architecture
 model:
-  model_name: "bert-base-uncased"  # Can be: bert-base-uncased, roberta-base, distilbert-base-uncased
+  model_name: "distilbert-base-uncased"  # 2x faster than BERT, similar performance
   num_labels: 2
   dropout: 0.1
 
 # Training parameters
 training:
-  batch_size: 16
-  learning_rate: 0.00002  # 2e-5
-  num_epochs: 10
-  max_length: 512
-  early_stopping_patience: 3
+  batch_size: 32  # Larger batch for efficiency
+  learning_rate: 0.00003  # 3e-5
+  num_epochs: 5  # Early stopping will handle convergence
+  max_length: 256  # Shorter = faster, sufficient for most texts
+  early_stopping_patience: 2
+  max_train_samples: 10000  # Limit for fast training (~30 min)
+  max_val_samples: 2000
+  gradient_accumulation_steps: 2
 
 # Data configuration
 data:
