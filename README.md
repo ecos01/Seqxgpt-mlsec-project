@@ -1,4 +1,4 @@
-# AI Text Detection: SeqXGPT + BERT Pipeline
+# AI-Generated Text Detection with SeqXGPT-Style Features and a DistilBERT Baseline
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-orange)](https://pytorch.org/)
