@@ -280,3 +280,45 @@ Best F1: **0.9319** (epoch 20)
 - F1-score of 92.42% is excellent for AI text detection
 - Training converged quickly (1 epoch) due to pre-trained DistilBERT weights
 
+
+---
+
+## 13. Comparative Evaluation Results (Test Set)
+
+### 13.1 Test Dataset
+
+**Dataset:** SeqXGPT-Bench Test Split  
+**Total Samples:** 3,591 (600 Human, 2,991 AI)  
+**Class Distribution:** 16.7% Human, 83.3% AI (imbalanced)
+
+### 13.2 Model Performance Comparison
+
+| Model | Accuracy | Precision | Recall | F1-Score | AUROC |
+| :---- | -------: | --------: | -----: | -------: | ----: |
+| **SeqXGPT** | **88.14%** | **92.23%** | 93.65% | **92.93%** | **91.45%** |
+| **BERT (DistilBERT)** | 86.22% | 87.39% | **97.53%** | 92.18% | 88.41% |
+
+### 13.3 Analysis
+
+**Winner: SeqXGPT** 🏆
+
+- **SeqXGPT** outperforms BERT on most metrics:
+  - Higher accuracy (+1.92%)
+  - Better precision (+4.84%) - fewer false positives
+  - Better F1-score (+0.75%)
+  - Higher AUROC (+3.04%) - better discrimination capability
+
+- **BERT** advantages:
+  - Higher recall (97.53% vs 93.65%) - catches more AI-generated text
+  - Better at minimizing false negatives (misses fewer AI texts)
+
+**Key Findings:**
+1. SeqXGPT's use of GPT-2 log-probability features provides superior discrimination between human and AI text
+2. BERT is more conservative (higher recall) but produces more false alarms (lower precision)
+3. Both models achieve >92% F1-score, demonstrating excellent detection capability
+4. The imbalanced dataset (83.3% AI) makes precision particularly important to avoid over-predicting AI class
+
+### 13.4 Visualizations
+
+- ROC curves: [results/roc_curves.png](results/roc_curves.png)
+- Confusion matrices: [results/confusion_matrices.png](results/confusion_matrices.png)

@@ -25,7 +25,28 @@ from train_seqxgpt import FeatureDataset, collate_fn, extract_or_load_features
 from train_bert import TextDataset
 
 
-def evaluate_seqxgpt(model, dataloader, device):
+def normalize_features(features, feature_mean, feature_std):
+    """Normalize features using training statistics."""
+    if feature_mean is None or feature_std is None:
+        return features
+    
+    # Convert to tensors if numpy
+    if isinstance(feature_mean, np.ndarray):
+        feature_mean = torch.from_numpy(feature_mean).float()
+    if isinstance(feature_std, np.ndarray):
+        feature_std = torch.from_numpy(feature_std).float()
+    
+    # Normalize: (x - mean) / std
+    feature_std = torch.clamp(feature_std, min=1e-8)  # Avoid division by zero
+    normalized = (features - feature_mean) / feature_std
+    
+    # Clip extreme values
+    normalized = torch.clamp(normalized, -5, 5)
+    
+    return normalized
+
+
+def evaluate_seqxgpt(model, dataloader, device, feature_mean=None, feature_std=None):
     """Evaluate SeqXGPT model."""
     model.eval()
     all_preds = []
@@ -34,6 +55,8 @@ def evaluate_seqxgpt(model, dataloader, device):
     
     with torch.no_grad():
         for features, masks, labels in dataloader:
+            # Normalize features using training stats
+            features = normalize_features(features, feature_mean, feature_std)
             features = features.to(device)
             masks = masks.to(device)
             
@@ -150,11 +173,16 @@ def plot_confusion_matrices(results, output_dir):
 
 def load_seqxgpt_model(checkpoint_path, config, device):
     """Load trained SeqXGPT model."""
-    checkpoint = torch.load(checkpoint_path, map_location=device)
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     model = SeqXGPTModel(**config['model']).to(device)
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()
-    return model
+    
+    # Extract normalization stats for feature preprocessing
+    feature_mean = checkpoint.get('feature_mean', None)
+    feature_std = checkpoint.get('feature_std', None)
+    
+    return model, feature_mean, feature_std
 
 
 def load_bert_model(checkpoint_dir, device):
@@ -206,7 +234,7 @@ def main():
         print("Please train the model first using train_bert.py")
         return
     
-    seqxgpt_model = load_seqxgpt_model(seqxgpt_checkpoint, seqxgpt_config, device)
+    seqxgpt_model, feature_mean, feature_std = load_seqxgpt_model(seqxgpt_checkpoint, seqxgpt_config, device)
     bert_model = load_bert_model(bert_checkpoint, device)
     
     print("✓ Models loaded successfully")
@@ -269,7 +297,7 @@ def main():
             shuffle=False,
             collate_fn=collate_fn
         )
-        seqxgpt_metrics = evaluate_seqxgpt(seqxgpt_model, seqxgpt_loader, device)
+        seqxgpt_metrics = evaluate_seqxgpt(seqxgpt_model, seqxgpt_loader, device, feature_mean, feature_std)
         results['SeqXGPT'][dataset_name] = seqxgpt_metrics
         
         print(f"Accuracy:  {seqxgpt_metrics['accuracy']:.4f}")
