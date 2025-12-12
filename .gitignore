@@ -37,6 +37,7 @@ ENV/
 # Model checkpoints (comment out if you want to track them)
 checkpoints/**/*.pt
 checkpoints/**/*.pth
+checkpoints/**/*.safetensors
 checkpoints/**/pytorch_model.bin
 
 # Cached features
