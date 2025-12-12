@@ -108,14 +108,23 @@ class SeqXGPTModel(nn.Module):
             x_cnn = cnn_layer(x_cnn) + x_cnn  # Residual connection
         x = x_cnn.transpose(1, 2)  # [B, L, H]
         
+        # Clean any NaN that might have appeared
+        x = torch.nan_to_num(x, nan=0.0, posinf=1e4, neginf=-1e4)
+        
         # Self-attention
         if mask is not None:
             # Create attention mask (True for positions to mask)
             attn_mask = ~mask.bool()  # Invert: True where to mask
+            # Ensure at least one position is not masked per sample
+            all_masked = attn_mask.all(dim=1)
+            if all_masked.any():
+                # Unmask first position for samples where all are masked
+                attn_mask[all_masked, 0] = False
         else:
             attn_mask = None
         
         attn_out, _ = self.attention(x, x, x, key_padding_mask=attn_mask)
+        attn_out = torch.nan_to_num(attn_out, nan=0.0, posinf=1e4, neginf=-1e4)
         x = self.attention_norm(x + attn_out)  # Residual + LayerNorm
         
         # Attention-weighted pooling

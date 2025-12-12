@@ -67,12 +67,48 @@ def extract_or_load_features(texts, labels, extractor, cache_name, config):
         feat_list = [feat[ft] for ft in feature_types]
         stacked = np.stack(feat_list, axis=-1)  # [max_length, num_features]
         
+        # Clean NaN/Inf BEFORE normalization
+        stacked = np.nan_to_num(stacked, nan=0.0, posinf=20.0, neginf=-20.0)
+        
         feature_dicts.append({
             'features': stacked.astype(np.float32),
             'actual_length': feat['actual_length']
         })
     
     return feature_dicts
+
+
+def normalize_features(feature_dicts):
+    """Normalize features to have zero mean and unit variance."""
+    # Collect all features
+    all_features = []
+    for fd in feature_dicts:
+        actual_len = fd['actual_length']
+        # Only use actual features (not padding)
+        all_features.append(fd['features'][:actual_len])
+    
+    # Concatenate and compute stats
+    all_features = np.concatenate(all_features, axis=0)  # [total_tokens, num_features]
+    
+    mean = np.mean(all_features, axis=0, keepdims=True)  # [1, num_features]
+    std = np.std(all_features, axis=0, keepdims=True)    # [1, num_features]
+    std = np.where(std < 1e-8, 1.0, std)  # Avoid division by zero
+    
+    print(f"  Feature normalization stats:")
+    print(f"    Mean: {mean.flatten()}")
+    print(f"    Std:  {std.flatten()}")
+    
+    # Normalize all features
+    for fd in feature_dicts:
+        fd['features'] = (fd['features'] - mean) / std
+        # Clean any remaining NaN/Inf
+        fd['features'] = np.nan_to_num(fd['features'], nan=0.0, posinf=5.0, neginf=-5.0)
+        # Clip to reasonable range after normalization
+        fd['features'] = np.clip(fd['features'], -5.0, 5.0)
+    
+    print(f"  After normalization: min={np.min([fd['features'].min() for fd in feature_dicts]):.4f}, max={np.max([fd['features'].max() for fd in feature_dicts]):.4f}")
+    
+    return feature_dicts, mean, std
 
 
 def evaluate(model, dataloader, device):
@@ -129,28 +165,65 @@ def train_epoch(model, dataloader, optimizer, criterion, device):
     total_loss = 0
     all_preds = []
     all_labels = []
+    skipped_batches = 0
     
-    for features, masks, labels in tqdm(dataloader, desc="Training"):
+    for batch_idx, (features, masks, labels) in enumerate(tqdm(dataloader, desc="Training")):
         features = features.to(device)
         masks = masks.to(device)
         labels = labels.to(device)
         
+        # Clean and clip features
+        features = torch.nan_to_num(features, nan=0.0, posinf=5.0, neginf=-5.0)
+        features = torch.clamp(features, -5.0, 5.0)
+        
+        # Check for invalid data
+        if torch.isnan(features).any() or torch.isinf(features).any():
+            print(f"\nBatch {batch_idx}: Invalid features detected, skipping")
+            skipped_batches += 1
+            continue
+        
         optimizer.zero_grad()
         
-        logits = model(features, masks).squeeze(-1)
-        loss = criterion(logits, labels)
-        
-        loss.backward()
-        optimizer.step()
-        
-        total_loss += loss.item()
-        
-        preds = (torch.sigmoid(logits) > 0.5).float()
-        all_preds.extend(preds.cpu().numpy())
-        all_labels.extend(labels.cpu().numpy())
+        try:
+            logits = model(features, masks).squeeze(-1)
+            loss = criterion(logits, labels)
+            
+            # Check for NaN loss
+            if torch.isnan(loss) or torch.isinf(loss):
+                print(f"\nBatch {batch_idx}: Invalid loss={loss.item()}, skipping")
+                skipped_batches += 1
+                continue
+            
+            loss.backward()
+            
+            # Gradient clipping to prevent explosion
+            grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            
+            # Check gradients
+            if torch.isnan(grad_norm) or torch.isinf(grad_norm):
+                print(f"\nBatch {batch_idx}: Invalid gradients, skipping")
+                skipped_batches += 1
+                continue
+            
+            optimizer.step()
+            
+            total_loss += loss.item()
+            
+            preds = (torch.sigmoid(logits) > 0.5).float()
+            all_preds.extend(preds.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
+            
+        except Exception as e:
+            print(f"\nBatch {batch_idx}: Exception {e}, skipping")
+            skipped_batches += 1
+            continue
     
-    avg_loss = total_loss / len(dataloader)
-    acc = accuracy_score(all_labels, all_preds)
+    if skipped_batches > 0:
+        print(f"\nSkipped {skipped_batches}/{len(dataloader)} batches due to invalid data")
+    
+    valid_batches = len(dataloader) - skipped_batches
+    avg_loss = total_loss / max(valid_batches, 1)
+    acc = accuracy_score(all_labels, all_preds) if len(all_labels) > 0 else 0.0
     
     return avg_loss, acc
 
@@ -175,7 +248,7 @@ def main():
             },
             'training': {
                 'batch_size': 16,
-                'learning_rate': 1e-4,
+                'learning_rate': 5e-5,
                 'num_epochs': 20,
                 'early_stopping_patience': 5
             },
@@ -208,7 +281,8 @@ def main():
     extractor = LLMProbExtractor(
         model_name=config['llm']['model_name'],
         max_length=config['llm']['max_length'],
-        cache_dir=config['llm']['cache_dir']
+        cache_dir=config['llm']['cache_dir'],
+        batch_size=32  # Larger batch on CPU to amortize overhead
     )
     
     # Load datasets
@@ -231,6 +305,16 @@ def main():
     
     train_features = extract_or_load_features(train_texts, train_labels, extractor, "train", config)
     val_features = extract_or_load_features(val_texts, val_labels, extractor, "val", config)
+    
+    # Normalize features using train statistics
+    print("\n=== Normalizing Features ===")
+    train_features, mean, std = normalize_features(train_features)
+    
+    # Apply same normalization to validation
+    for fd in val_features:
+        fd['features'] = (fd['features'] - mean) / std
+        fd['features'] = np.nan_to_num(fd['features'], nan=0.0, posinf=5.0, neginf=-5.0)
+        fd['features'] = np.clip(fd['features'], -5.0, 5.0)
     
     # Create dataloaders
     train_loader = DataLoader(
@@ -255,7 +339,14 @@ def main():
     criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.AdamW(
         model.parameters(),
-        lr=config['training']['learning_rate']
+        lr=config['training']['learning_rate'],
+        weight_decay=0.01,
+        eps=1e-8
+    )
+    
+    # Learning rate scheduler
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode='max', factor=0.5, patience=2
     )
     
     # Training loop
@@ -276,8 +367,16 @@ def main():
         val_metrics = evaluate(model, val_loader, device)
         history['val_metrics'].append(val_metrics)
         
+        # Check for NaN in training
+        if np.isnan(train_loss):
+            print("ERROR: Training loss is NaN! Stopping training.")
+            break
+        
         print(f"Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}")
         print(f"Val - Acc: {val_metrics['accuracy']:.4f}, F1: {val_metrics['f1']:.4f}, AUROC: {val_metrics['auroc']:.4f}")
+        
+        # Step scheduler
+        scheduler.step(val_metrics['f1'])
         
         # Early stopping
         if val_metrics['f1'] > best_f1:
@@ -290,7 +389,9 @@ def main():
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'config': config,
-                'metrics': val_metrics
+                'metrics': val_metrics,
+                'feature_mean': mean,
+                'feature_std': std
             }, output_dir / 'best_model.pt')
             print(f"✓ Saved best model (F1: {best_f1:.4f})")
         else:
