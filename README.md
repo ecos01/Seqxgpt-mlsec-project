@@ -12,7 +12,8 @@
 
 The primary goal is to compare their performance, robustness, and reliability for critical applications such as **plagiarism detection, content moderation, and misinformation analysis**.
 
-## Features
+
+##  Features
 
 This project offers:
 
