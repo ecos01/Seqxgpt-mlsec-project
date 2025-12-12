@@ -4,7 +4,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-orange)](https://pytorch.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Machine Learning Security Project** - This project presents a unified pipeline for detecting AI-generated text, comparing two state-of-the-art approaches:
+This project presents a unified pipeline for detecting AI-generated text, comparing two state-of-the-art approaches:
 
 *   **SeqXGPT-style detector** – A CNN + self-attention model leveraging GPT-2 token log-probabilities as features.
 *   **BERT-based classifier** – A fine-tuned DistilBERT model for human vs. AI text classification.
