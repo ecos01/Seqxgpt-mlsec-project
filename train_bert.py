@@ -137,11 +137,11 @@ def main():
             'training': {
                 'batch_size': 32,  # Larger batch for speed
                 'learning_rate': 3e-5,
-                'num_epochs': 5,  # Fewer epochs, early stopping will handle it
+                'num_epochs': 3,  # Very few epochs, early stopping will handle it
                 'max_length': 256,  # Shorter sequences = faster
-                'early_stopping_patience': 2,
-                'max_train_samples': 10000,  # Limit samples for faster training
-                'max_val_samples': 2000,
+                'early_stopping_patience': 1,
+                'max_train_samples': 5000,  # Reduced for much faster training
+                'max_val_samples': 1000,
                 'gradient_accumulation_steps': 2
             },
             'data': {

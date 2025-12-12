@@ -34,12 +34,21 @@ class BERTDetector(nn.Module):
         
         # Load pre-trained model
         print(f"Loading {model_name}...")
-        self.model = AutoModelForSequenceClassification.from_pretrained(
-            model_name,
-            num_labels=num_labels,
-            hidden_dropout_prob=dropout,
-            attention_probs_dropout_prob=dropout
-        )
+        
+        # Different dropout param names for different models
+        if 'distilbert' in model_name.lower():
+            self.model = AutoModelForSequenceClassification.from_pretrained(
+                model_name,
+                num_labels=num_labels,
+                seq_classif_dropout=dropout
+            )
+        else:
+            self.model = AutoModelForSequenceClassification.from_pretrained(
+                model_name,
+                num_labels=num_labels,
+                hidden_dropout_prob=dropout,
+                attention_probs_dropout_prob=dropout
+            )
         
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         print(f"Model loaded successfully!")

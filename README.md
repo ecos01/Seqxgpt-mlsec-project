@@ -245,4 +245,38 @@ Epochs: **20**
 
 Best F1: **0.9319** (epoch 20)
 
-Checkpoint saved under `checkpoints/seqxgpt/`.
+
+---
+
+## 12. BERT Detector Results on SeqXGPT-Bench
+
+### 12.1 Model Configuration
+
+| Parameter | Value |
+| :-------- | :---- |
+| Model | DistilBERT (distilbert-base-uncased) |
+| Parameters | ~66M |
+| Max Length | 256 tokens |
+| Batch Size | 32 |
+| Learning Rate | 3e-5 |
+| Training Samples | 5,000 (subset) |
+| Validation Samples | 1,000 |
+| Epochs Completed | 1 (early stopping) |
+
+### 12.2 Validation Metrics
+
+| Metric | Value |
+| :----- | ----: |
+| **Accuracy** | 0.8665 (86.65%) |
+| **Precision** | 0.8762 (87.62%) |
+| **Recall** | 0.9778 (97.78%) |
+| **F1-Score** | **0.9242 (92.42%)** |
+| **AUROC** | 0.8825 (88.25%) |
+
+### 12.3 Observations
+
+- High recall (97.78%) indicates the model catches almost all AI-generated text
+- Good precision (87.62%) with few false positives
+- F1-score of 92.42% is excellent for AI text detection
+- Training converged quickly (1 epoch) due to pre-trained DistilBERT weights
+

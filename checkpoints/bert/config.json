@@ -1,0 +1,24 @@
+{
+  "model": {
+    "model_name": "distilbert-base-uncased",
+    "num_labels": 2,
+    "dropout": 0.1
+  },
+  "training": {
+    "batch_size": 32,
+    "learning_rate": 3e-05,
+    "num_epochs": 5,
+    "max_length": 256,
+    "early_stopping_patience": 2,
+    "max_train_samples": 10000,
+    "max_val_samples": 2000,
+    "gradient_accumulation_steps": 2
+  },
+  "data": {
+    "data_dir": "dataset/SeqXGPT-Bench",
+    "train_ratio": 0.8,
+    "val_ratio": 0.1,
+    "test_ratio": 0.1,
+    "seed": 42
+  }
+}
