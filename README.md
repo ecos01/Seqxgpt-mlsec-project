@@ -41,18 +41,18 @@ This project offers:
 git clone https://github.com/ecos01/Seqxgpt-mlsec-project.git
 cd Seqxgpt-mlsec-project
 python -m venv venv
-.\venv\Scripts\Activate.ps1  # For Windows (use 'source venv/bin/activate' on Linux/macOS)
+.\venv\Scripts\Activate.ps1  
 pip install -r requirements.txt
 
 # 2. Verify your setup
 python verify_setup.py
 
 # 3. Train the models
-python train_seqxgpt.py  # Estimated time: ~2.5h on CPU
-python train_bert.py     # Estimated time: ~15min on CPU
+python train_seqxgpt.py  
+python train_bert.py     
 
 # 4. Evaluate both models
-python eval.py           # Runs comparative evaluation and generates reports
+python eval.py           
 ```
 
 **Output**:
