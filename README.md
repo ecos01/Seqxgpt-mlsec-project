@@ -38,7 +38,7 @@ This project offers:
 
 ```bash
 # 1. Clone the repository and set up the environment
-git clone <repo-url>
+git clone https://github.com/ecos01/Seqxgpt-mlsec-project.git
 cd Seqxgpt-mlsec-project
 python -m venv venv
 .\venv\Scripts\Activate.ps1  # For Windows (use 'source venv/bin/activate' on Linux/macOS)
