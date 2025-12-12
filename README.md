@@ -11,31 +11,6 @@
 
 Compare performance, robustness, and reliability for applications such as **plagiarism detection, content moderation, and misinformation analysis**.
 
----
-
-## 📋 Table of Contents
-
-- [Features](#-features)
-- [Quick Start](#-quick-start)
-- [Results Summary](#-results-summary)
-- [Overview](#1-overview)
-- [Project Structure](#2-project-structure)
-- [Installation](#3-installation-and-setup)
-- [Datasets](#4-datasets)
-- [How It Works](#5-how-it-works)
-- [Training](#6-training)
-- [Evaluation](#7-evaluation)
-- [Inference](#8-inference)
-- [Configuration](#9-configuration)
-- [Detailed Results](#10-detailed-results)
-  - [SeqXGPT Results](#101-seqxgpt-validation-results)
-  - [BERT Results](#102-bert-detector-results)
-  - [Comparative Evaluation](#103-comparative-evaluation-test-set)
-- [Reproducibility](#11-reproducibility)
-- [License](#12-license)
-- [Acknowledgements](#13-acknowledgements)
-
----
 
 ## ✨ Features
 
