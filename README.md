@@ -237,144 +237,414 @@ This checks:
 
 ## 4. Datasets
 
-### 4.1 SeqXGPT-Bench
+### 4.1 SeqXGPT-Bench (Primary Dataset)
 
-Sentence-level benchmark containing human- and AI-generated text (GPT‑2, GPT‑3, GPT‑J, GPT‑Neo, LLaMA).
+**Description**: Sentence-level benchmark containing human-written and AI-generated text from multiple models.
 
-Loader: `SeqXGPTDataset` → binary labels (0 = human, 1 = AI).
+**Sources**:
+- Human-written text
+- GPT-2 generated
+- GPT-3 generated
+- GPT-J generated
+- GPT-Neo generated
+- LLaMA generated
 
-Default split: **80 / 10 / 10**.
+**Labels**: 
+- `0` = Human-written
+- `1` = AI-generated (all AI models)
 
-### 4.2 Optional datasets
+**Default Split**: 
+- Train: 80% (28,722 samples)
+- Validation: 10% (3,591 samples)
+- Test: 10% (3,591 samples)
 
-* Document-level dataset
-* OOD sentence-level dataset
+**Loader**: `SeqXGPTDataset` class in `data/seqxgpt_dataset.py`
+
+**Imbalanced Classes**: ~83% AI, ~17% Human (reflects real-world scenario)
+
+### 4.2 Optional Datasets
+
+* **Document-level detection dataset** - Longer texts (paragraphs/documents)
+* **OOD sentence-level dataset** - Out-of-distribution test set
+
+**Note**: All datasets are from the original [SeqXGPT repository](https://github.com/Jihuai-wpy/SeqXGPT).
 
 ---
 
-## 5. Training
+## 5. How It Works
 
-### 5.1 Train SeqXGPT
+### 5.1 GPT-2 Feature Extraction
+
+**SeqXGPT Pipeline**:
+
+```
+Input Text → GPT-2 Tokenization → For each token:
+                                    ├─ log P(token|context)  [log-probability]
+                                    ├─ -log P(token|context) [surprisal]
+                                    └─ H(P)                  [entropy]
+                                    
+Features [batch, 256, 3] → Cache to disk → Use in training
+```
+
+**Why These Features?**
+- **Log-probability**: Measures token predictability
+  - AI text: High probability (more predictable)
+  - Human text: More variable
+- **Surprisal**: Information content (`-log P`)
+  - AI: Low surprisal (expected tokens)
+  - Human: High surprisal (creative choices)
+- **Entropy**: Uncertainty of distribution
+  - AI: Low entropy (confident predictions)
+  - Human: High entropy (more ambiguous)
+
+**Implementation**: `features/llm_probs.py`
+- Batch processing (16-32 samples)
+- Automatic caching
+- NaN/Inf handling with clipping
+
+### 5.2 SeqXGPT-Style Model
+
+**Architecture**:
+
+```
+Features [batch, 256, 3]
+    ↓
+1D CNN Layers (3 layers, kernel=3)
+    ↓ [batch, 256, 128]
+Multi-Head Self-Attention (4 heads)
+    ↓
+Attention-Based Pooling (weighted sum)
+    ↓
+MLP Classifier (128 → 64 → 1)
+    ↓
+Sigmoid → Probability [0, 1]
+```
+
+**Key Components**:
+- **CNN**: Captures local patterns (n-grams)
+- **Self-Attention**: Captures long-range dependencies
+- **Attention Pooling**: Model learns which positions are important
+- **Parameters**: 225,922 (lightweight!)
+
+**Training Script**: `train_seqxgpt.py`
+
+### 5.3 BERT Detector
+
+**Architecture**:
+- Base model: DistilBERT (distilbert-base-uncased)
+- Fine-tuned for binary classification
+- Input: Raw text → BERT tokenization
+- Output: 2 classes (Human, AI) → Softmax
+
+**Why DistilBERT?**
+- 40% fewer parameters than BERT-base (66M vs 110M)
+- 2x faster inference and training
+- 97% of BERT performance
+- Perfect for CPU training
+
+**Training Script**: `train_bert.py`
+
+### 5.4 Evaluation
+
+**Metrics Computed**:
+- **Accuracy**: Overall correctness
+- **Precision**: Of predicted AI, how many are truly AI?
+- **Recall**: Of all AI texts, how many did we catch?
+- **F1-Score**: Harmonic mean of precision and recall
+- **AUROC**: Area Under ROC Curve (discrimination quality)
+
+**Plots Generated**:
+- ROC curves (True Positive Rate vs False Positive Rate)
+- Confusion matrices (visual breakdown of predictions)
+
+---
+
+## 6. Training
+
+### 6.1 Train SeqXGPT
 
 ```bash
 python train_seqxgpt.py
 ```
 
 **Process**:
-1. Loads SeqXGPT-Bench dataset (28,722 train, 3,591 val)
-2. Extracts GPT-2 features (log-prob, surprisal, entropy) → cached
-3. Trains CNN + Attention model for 20 epochs
-4. Saves best model to `checkpoints/seqxgpt/best_model.pt`
+1. ✅ Loads SeqXGPT-Bench dataset (28,722 train, 3,591 val)
+2. ✅ Extracts GPT-2 features (log-prob, surprisal, entropy) → Cached for reuse
+3. ✅ Normalizes features (z-score + clipping [-5, +5])
+4. ✅ Trains CNN + Attention model for 20 epochs
+5. ✅ Saves best model based on validation F1 to `checkpoints/seqxgpt/best_model.pt`
 
-**Training Time**: ~2.5 hours on CPU (1.5h features + 1h training)
+**Training Time**: ~2.5 hours on CPU
+- Feature extraction: ~1.5 hours (only once, then cached)
+- Training: ~1 hour (20 epochs × 3 min/epoch)
 
 **Configuration**: [`configs/seqxgpt_config.yaml`](configs/seqxgpt_config.yaml)
 
-### 5.2 Train BERT
+**Key Optimizations**:
+- Feature caching (no re-extraction)
+- Gradient clipping (prevents NaN)
+- Early stopping (patience=5 epochs)
+- LR scheduler (ReduceLROnPlateau)
+
+### 6.2 Train BERT
 
 ```bash
 python train_bert.py
 ```
 
 **Process**:
-1. Loads 5k train samples (stratified subset for speed)
-2. Fine-tunes DistilBERT for binary classification
-3. Early stopping at epoch 1 (converged)
-4. Saves model to `checkpoints/bert/best_model/`
+1. ✅ Loads 5k train samples (stratified subset for speed on CPU)
+2. ✅ Fine-tunes DistilBERT for binary classification (Human vs AI)
+3. ✅ Early stopping at epoch 1 (converged due to pre-training)
+4. ✅ Saves model to `checkpoints/bert/best_model/` (HuggingFace format)
 
 **Training Time**: ~15 minutes on CPU
 
 **Configuration**: [`configs/bert_config.yaml`](configs/bert_config.yaml)
 
+**Optimizations for CPU**:
+- DistilBERT instead of BERT (2x faster)
+- Reduced samples: 5k/28k (stratified)
+- Shorter sequences: 256 tokens (vs 512)
+- Larger batch size: 32 (efficiency)
+
+**Performance Note**: Despite using only 5k samples, achieves F1=92.42% (excellent!)
+
 ---
 
-## 6. Evaluation
+## 7. Evaluation
 
-### 6.1 Comparative Evaluation
+### 7.1 Comparative Evaluation
 
 ```bash
 python eval.py
 ```
 
-**Output**:
-- Comparative metrics table (Accuracy, Precision, Recall, F1, AUROC)
-- ROC curves: `results/roc_curves.png`
-- Confusion matrices: `results/confusion_matrices.png`
+**What It Does**:
+- Loads both trained models (SeqXGPT and BERT)
+- Evaluates on test set (3,591 samples)
+- Computes all metrics for both models
+- Generates visualizations
 
-### 6.2 Evasion Attacks (Optional)
+**Output**:
+- 📊 Comparative metrics table (printed to console)
+- 📈 ROC curves: `results/roc_curves.png`
+- 📊 Confusion matrices: `results/confusion_matrices.png`
+- 💾 JSON logs with detailed metrics
+
+**Metrics Computed**:
+- Accuracy
+- Precision
+- Recall
+- F1-Score
+- AUROC
+- Confusion Matrix
+
+### 7.2 Evasion Attacks (Optional)
+
+Test model robustness against adversarial modifications:
 
 ```bash
 python run_evasion_attacks.py
 ```
 
-Tests robustness against:
-- Paraphrasing (T5-based)
-- Back-translation (en→it→en)
+**Attack Methods**:
+- **Paraphrasing**: Rephrase AI text using T5 model
+- **Back-translation**: en→it→en to change style while preserving meaning
+
+**Code Example**:
 
 ```python
 from attacks.text_augmentation import TextAugmenter
 
 augmenter = TextAugmenter()
-paraphrased = augmenter.paraphrase(text)
-back_translated = augmenter.back_translate(text, intermediate_lang="it")
+
+# Original AI text
+original = "The quick brown fox jumps over the lazy dog."
+
+# Apply attacks
+paraphrased = augmenter.paraphrase(original)
+back_translated = augmenter.back_translate(original, intermediate_lang="it")
+
+# Test if detector still catches it
+# ...
+```
+
+**Purpose**: Measure performance drop under evasion (not included in main results).
+
+---
+
+## 8. Inference
+
+### 8.1 SeqXGPT Inference
+
+```python
+import torch
+import yaml
+from models.seqxgpt import SeqXGPTModel
+from features.llm_probs import LLMProbExtractor
+
+# Load model
+with open("configs/seqxgpt_config.yaml") as f:
+    config = yaml.safe_load(f)
+
+checkpoint = torch.load("checkpoints/seqxgpt/best_model.pt", map_location="cpu", weights_only=False)
+model = SeqXGPTModel(**config['model'])
+model.load_state_dict(checkpoint['model_state_dict'])
+model.eval()
+
+# Load feature extractor
+extractor = LLMProbExtractor(
+    model_name=config['llm']['model_name'],
+    max_length=config['llm']['max_length']
+)
+
+# Extract features
+text = "Your text to classify here."
+features, mask = extractor.extract_single(text)
+
+# Normalize features (CRITICAL!)
+feature_mean = checkpoint['feature_mean']
+feature_std = checkpoint['feature_std']
+features = (features - feature_mean) / feature_std
+features = torch.clamp(features, -5, 5)
+
+# Predict
+with torch.no_grad():
+    prob = model.predict(features.unsqueeze(0), mask.unsqueeze(0))
+    pred = 1 if prob.item() > 0.5 else 0
+
+print(f"Prediction: {'AI-generated' if pred == 1 else 'Human-written'}")
+print(f"Confidence: {prob.item():.4f}")
+```
+
+### 8.2 BERT Inference
+
+```python
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+import torch
+
+# Load model and tokenizer
+model = AutoModelForSequenceClassification.from_pretrained("checkpoints/bert/best_model")
+tokenizer = AutoTokenizer.from_pretrained("checkpoints/bert/best_model")
+model.eval()
+
+# Tokenize and predict
+text = "Your text to classify here."
+inputs = tokenizer(text, return_tensors="pt", max_length=256, truncation=True, padding=True)
+
+with torch.no_grad():
+    outputs = model(**inputs)
+    probs = torch.softmax(outputs.logits, dim=1)
+    pred = torch.argmax(probs, dim=1).item()
+    confidence = probs[0, pred].item()
+
+print(f"Prediction: {'AI-generated' if pred == 1 else 'Human-written'}")
+print(f"Confidence: {confidence:.4f}")
+```
+
+### 8.3 Production API Example
+
+```python
+class AITextDetector:
+    def __init__(self, model_type="seqxgpt"):
+        """Load model at initialization."""
+        self.model_type = model_type
+        if model_type == "seqxgpt":
+            # Load SeqXGPT (see above)
+            pass
+        else:
+            # Load BERT (see above)
+            pass
+    
+    def predict(self, text):
+        """Classify text as human (0) or AI (1)."""
+        # Implementation...
+        return {
+            "prediction": 1,  # or 0
+            "confidence": 0.95,
+            "label": "AI-generated"  # or "Human-written"
+        }
+
+# Usage
+detector = AITextDetector(model_type="seqxgpt")
+result = detector.predict("This is a test sentence.")
+print(result)
 ```
 
 ---
 
-## 7. Configuration
+## 9. Configuration
 
-Configuration files in [`configs/`](configs/) define all hyperparameters.
+Configuration files in [`configs/`](configs/) directory define all hyperparameters. Edit these files to experiment with different settings.
 
-### 7.1 SeqXGPT Configuration
+### 9.1 SeqXGPT Configuration
 
 **File**: [`configs/seqxgpt_config.yaml`](configs/seqxgpt_config.yaml)
 
 ```yaml
 model:
-  input_dim: 3                    # log-prob, surprisal, entropy
-  hidden_dim: 128
-  num_cnn_layers: 3
-  num_attention_heads: 4
-  dropout: 0.1
+  input_dim: 3                    # 3 features: log-prob, surprisal, entropy
+  hidden_dim: 128                 # Hidden dimension for CNN/Attention
+  num_cnn_layers: 3               # Number of 1D CNN layers
+  num_attention_heads: 4          # Multi-head attention heads
+  dropout: 0.1                    # Dropout rate
 
 training:
-  batch_size: 16
-  learning_rate: 0.00005          # 5e-5
-  num_epochs: 20
-  early_stopping_patience: 5
-  gradient_clip_max_norm: 1.0
+  batch_size: 16                  # Training batch size
+  learning_rate: 0.00005          # 5e-5, reduced from 1e-4
+  num_epochs: 20                  # Maximum epochs
+  early_stopping_patience: 5      # Stop if no improvement for 5 epochs
+  gradient_clip_max_norm: 1.0     # Gradient clipping (critical!)
 
 llm:
-  model_name: "gpt2"
-  max_length: 256
-  cache_dir: "features/cache"
+  model_name: "gpt2"              # GPT-2 for feature extraction
+  max_length: 256                 # Max sequence length
+  cache_dir: "features/cache"     # Where to cache extracted features
+
+data:
+  data_dir: "dataset/SeqXGPT-Bench"
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+  seed: 42                        # Fixed seed for reproducibility
 ```
 
-### 7.2 BERT Configuration
+### 9.2 BERT Configuration
 
 **File**: [`configs/bert_config.yaml`](configs/bert_config.yaml)
 
 ```yaml
 model:
-  model_name: "distilbert-base-uncased"  # 2x faster than BERT
-  num_labels: 2
+  model_name: "distilbert-base-uncased"  # 2x faster than BERT-base
+  num_labels: 2                          # Binary classification
   dropout: 0.1
 
 training:
-  batch_size: 32
-  learning_rate: 0.00003          # 3e-5
-  num_epochs: 3
-  max_length: 256                 # Reduced for speed
-  early_stopping_patience: 1
-  max_train_samples: 5000         # Subset for fast training
-  max_val_samples: 1000
+  batch_size: 32                         # Larger for efficiency
+  learning_rate: 0.00003                 # 3e-5 (standard for BERT)
+  num_epochs: 3                          # Few epochs needed
+  max_length: 256                        # Reduced from 512 for speed
+  early_stopping_patience: 1             # Aggressive early stopping
+  max_train_samples: 5000                # Subset for fast CPU training
+  max_val_samples: 1000                  # Subset for validation
+  gradient_accumulation_steps: 2         # Simulate larger batch
+
+data:
+  data_dir: "dataset/SeqXGPT-Bench"
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+  seed: 42
 ```
+
+**Tip**: Increase `max_train_samples` to 28722 (full dataset) if you have GPU or more time.
 
 ---
 
-## 8. Detailed Results
+## 10. Detailed Results
 
-### 8.1 SeqXGPT Validation Results
+### 10.1 SeqXGPT Validation Results
 
 **Dataset Statistics**:
 - **Train**: 28,722 samples (4,800 human, 23,922 AI) - 83.3% imbalanced
@@ -419,9 +689,9 @@ training:
 
 ---
 
-### 8.2 BERT Detector Results
+### 10.2 BERT Detector Results
 
-| Parameter | Value |
+**Model Configuration**:
 | :-------- | :---- |
 | Model | DistilBERT (distilbert-base-uncased) |
 | Parameters | ~66M |
@@ -432,7 +702,12 @@ training:
 | Validation Samples | 1,000 |
 | Epochs Completed | 1 (early stopping) |
 
-### 12.2 Validation Metrics
+**Why DistilBERT?** 
+- 2x faster than BERT-base on CPU
+- Similar performance (97% of BERT quality)
+- Training time: 15h → 15min
+
+**Validation Metrics** (on 1k validation samples):
 
 | Metric | Value |
 | :----- | ----: |
@@ -452,7 +727,7 @@ training:
 
 ---
 
-### 8.3 Comparative Evaluation (Test Set)
+### 10.3 Comparative Evaluation (Test Set)
 
 **Test Dataset**:
 - **Source**: SeqXGPT-Bench Test Split
@@ -497,7 +772,7 @@ training:
 
 ---
 
-## 9. Reproducibility
+## 11. Reproducibility
 
 **Reproducibility Features**:
 - ✅ **Fixed seed** (42) for consistent train/val/test splits
@@ -527,10 +802,65 @@ python eval.py           # Uses saved checkpoints
 
 ---
 
-## 10. License
+## 12. License
 
 MIT License - See [LICENSE](LICENSE) file for details.
 
+This project is for **academic and research purposes**. If using in production, ensure compliance with:
+- Model licenses (GPT-2, DistilBERT)
+- Dataset terms of use
+- Ethical AI detection guidelines
+
 ---
 
-## 11. Acknowledgements
+## 13. Acknowledgements
+
+This project builds upon and extends the original [SeqXGPT work](https://arxiv.org/abs/2310.08903):
+
+**Research**:
+- **SeqXGPT authors** - Original paper and architecture
+- [SeqXGPT GitHub Repository](https://github.com/Jihuai-wpy/SeqXGPT) - Datasets and baseline code
+
+**Frameworks & Libraries**:
+- [HuggingFace Transformers](https://huggingface.co/docs/transformers) - BERT models and tokenizers
+- [PyTorch](https://pytorch.org/) - Deep learning framework
+- [scikit-learn](https://scikit-learn.org/) - Metrics and evaluation tools
+
+**Models**:
+- OpenAI GPT-2 - Feature extraction
+- DistilBERT - Efficient transformer baseline
+
+**Contributors**:
+- Eugenio (Project Lead)
+- Sapienza University of Rome - Machine Learning Security Course
+
+**Citation**:
+
+If you use this project in your research, please cite:
+
+```bibtex
+@misc{seqxgpt-mlsec-2025,
+  author = {Eugenio},
+  title = {AI Text Detection: SeqXGPT + BERT Pipeline},
+  year = {2025},
+  publisher = {GitHub},
+  url = {https://github.com/your-repo-url}
+}
+```
+
+And the original SeqXGPT paper:
+
+```bibtex
+@article{wang2023seqxgpt,
+  title={SeqXGPT: Sentence-Level AI-Generated Text Detection},
+  author={Wang, Jihuai and others},
+  journal={arXiv preprint arXiv:2310.08903},
+  year={2023}
+}
+```
+
+---
+
+**Questions?** Open an issue or see [SPIEGAZIONE.md](SPIEGAZIONE.md) for detailed FAQ and technical documentation.
+
+**Star ⭐ this repo** if you find it useful!
