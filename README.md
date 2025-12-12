@@ -434,7 +434,7 @@ If you use this project in your research, please cite:
   author= {Eugenio Cosimi},
   title= {AI-Generated Text Detection with SeqXGPT-Style Features and a DistilBERT Baseline},
   year= {2025},
-  howpublished = {\url{https://github.com/ecos01/Seqxgpt-mlsec-project}},
+  howpublished = {https://github.com/ecos01/Seqxgpt-mlsec-project},
   note= {GitHub repository [Software]},
   urldate= {2025-12-12}
 }
