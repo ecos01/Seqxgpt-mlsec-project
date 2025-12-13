@@ -76,7 +76,7 @@ python eval.py
 
 **Visualizations**: [ROC Curves](results/roc_curves.png) | [Confusion Matrices](results/confusion_matrices.png)
 
-**For in-depth technical details, FAQs, and a study guide, refer to [SPIEGAZIONE.md](SPIEGAZIONE.md).**
+**For in-depth technical details, FAQs, and a study guide, refer to [explanation.md](explanation.md).**
 
 ---
 
@@ -99,7 +99,7 @@ SeqXGPT-MLSEC-Project/
 ├── verify_setup.py            # Utility for environment and dependency checks.
 ├── requirements.txt           # Python dependency list.
 ├── README.md                  # This document.
-└── SPIEGAZIONE.md             # Detailed technical documentation (in Italian).
+└── explanation.md             # Detailed technical documentation (in Italian).
 ```
 
 ---
