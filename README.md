@@ -4,33 +4,118 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-orange)](https://pytorch.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-This project presents a unified pipeline for detecting AI-generated text, comparing two state-of-the-art approaches:
+## 📖 Overview
+
+This project implements a **complete, production-ready pipeline** for AI-generated text detection, extending and significantly improving upon the original [SeqXGPT](https://github.com/Jihuai-wpy/SeqXGPT) research. We compare two complementary approaches:
 
 *   **SeqXGPT-style detector** – A CNN + self-attention model leveraging GPT-2 token log-probabilities as features.
 *   **BERT-based classifier** – A fine-tuned DistilBERT model for human vs. AI text classification.
 
-The primary goal is to compare their performance, robustness, and reliability for critical applications such as **plagiarism detection, content moderation, and misinformation analysis**.
+### 🎯 Project Goals
+
+This project was developed with four key objectives:
+
+1. **Dataset & Modular Pipeline** – Reorganize the original SeqXGPT codebase into a clean, maintainable architecture using the SeqXGPT-Bench dataset.
+2. **SeqXGPT-Style Detector** – Implement a robust feature-based detector using GPT-2 log-probabilities + CNN + Self-Attention classifier.
+3. **BERT Baseline** – Add a fine-tuned DistilBERT model trained on the same data splits for direct comparison of feature-based vs. end-to-end fine-tuning approaches.
+4. **Unified Evaluation** – Create a single evaluation pipeline with comprehensive metrics (Accuracy, Precision, Recall, F1-score, AUROC) and visualizations.
+
+### 🔑 Key Improvements Over Original SeqXGPT
+
+This implementation resolves **critical issues** in the original research code and adds substantial new functionality:
+
+| **Aspect** | **Original SeqXGPT** | **This Project** |
+|------------|---------------------|------------------|
+| **Architecture** | Monolithic code (553-line files) | Modular components (data, models, features, configs) |
+| **Feature Extraction** | Serial processing, slow | Batch processing with caching (2x faster) |
+| **Feature Normalization** | ❌ None (training crashes after 2-3 batches) | ✅ Z-score + clipping (stable training) |
+| **NaN Handling** | ❌ None (frequent crashes) | ✅ 5-layer protection system (0 crashes) |
+| **Evaluation Normalization** | ❌ Bug: test features not normalized (AUROC ~50%) | ✅ Fixed: uses training statistics (AUROC 91.45%) |
+| **BERT Baseline** | ❌ Not included (only RoBERTa mentioned) | ✅ Full DistilBERT implementation + comparison |
+| **Configuration** | Hardcoded hyperparameters | External YAML configs for easy experimentation |
+| **Training Stability** | Unstable, crashes frequently | Robust with gradient clipping, early stopping |
+| **Reproducibility** | Low (no fixed seeds, no saved stats) | High (fixed seeds, saved normalization stats) |
+| **Documentation** | Minimal README | Complete README + detailed [explanation.md](explanation.md) |
+
+**Critical Fix Example**: The original evaluation code did not normalize test features using training statistics, resulting in random AUROC (~50%). This project fixes this bug by saving and reusing training mean/std, achieving **91.45% AUROC** – a **+41.45%** improvement.
+
+The primary goal is to provide a **reliable, well-documented foundation** for AI text detection research and applications such as **plagiarism detection, content moderation, and misinformation analysis**.
 
 
-##  Features
+## ✨ Features
 
 This project offers:
 
 *   A **complete training and evaluation pipeline** for both SeqXGPT and BERT detectors.
-*   **Unified dataset loaders** with consistent preprocessing and data splits.
-*   **Efficient log-probability feature extraction** from GPT-2 with optimized caching.
-*   **Modular architecture** for clear separation of components.
+*   **Unified dataset loaders** with consistent preprocessing and reproducible data splits (80/10/10).
+*   **Efficient log-probability feature extraction** from GPT-2 with automatic caching (saves hours on re-runs).
+*   **Modular architecture** – clean separation of data loaders, models, features, and configs.
 *   **Comparative evaluation** on SeqXGPT-Bench, reporting accuracy, precision, recall, F1-score, and AUROC.
-*   (Optional) **Robustness tests** via paraphrasing and back-translation.
+*   **Robustness testing framework** via paraphrasing and back-translation attacks.
 *   **Exportable metrics** including JSON logs, ROC curves, confusion matrices, and model checkpoints.
-*   **Production-ready inference** with a simple API for text classification.
+*   **Production-ready inference** with simple APIs for both models.
 
-**Key Innovations vs. Original SeqXGPT**:
-*   Incorporated a BERT baseline for direct comparison.
-*   Optimized feature extraction with batch processing (2x speedup).
-*   Resolved critical NaN handling issues.
-*   Achieved CPU-friendly training with DistilBERT (reduced from 15h to 15min).
-*   Provided comprehensive documentation and FAQs.
+### 🔬 Technical Implementation Highlights
+
+Three critical fixes that make this project work:
+
+1. **Feature Normalization** – The original code didn't normalize GPT-2 features, causing training loss to explode after 2-3 batches. We implement Z-score normalization + clipping, enabling stable 20-epoch training.
+
+2. **Evaluation Fix** – Original evaluation didn't normalize test features using training statistics, resulting in random AUROC (~50%). We save mean/std in checkpoints and apply them at test time, achieving correct 91.45% AUROC.
+
+3. **Multi-Layer NaN Protection** – We implement 5 layers of NaN handling (feature extraction → normalization → forward pass → loss → gradients), eliminating all training crashes.
+
+**For complete technical details, see [explanation.md](explanation.md)** (includes full architecture diagrams, implementation code, epoch-by-epoch training logs, and FAQ).
+
+---
+
+## 📦 What's Included
+
+This project provides a **complete reimplementation** of SeqXGPT with extensive improvements:
+
+```
+Seqxgpt-mlsec-project/
+├── data/                          # 📁 Modular dataset loaders
+│   ├── seqxgpt_dataset.py         # SeqXGPT-Bench loader (consistent splits)
+│   └── extra_dataset.py           # Support for additional datasets
+│
+├── models/                        # 📁 Separated model architectures
+│   ├── seqxgpt.py                 # SeqXGPT (CNN + Attention)
+│   └── bert_detector.py           # BERT-based classifier
+│
+├── features/                      # 📁 Feature extraction module
+│   └── llm_probs.py               # GPT-2 log-prob extraction with caching
+│
+├── attacks/                       # 📁 Robustness testing
+│   └── text_augmentation.py      # Paraphrasing & back-translation attacks
+│
+├── configs/                       # 📁 YAML configurations
+│   ├── seqxgpt_config.yaml        # SeqXGPT hyperparameters
+│   └── bert_config.yaml           # BERT hyperparameters
+│
+├── checkpoints/                   # 📁 Saved models
+│   ├── seqxgpt/                   # Includes feature_mean/std for eval
+│   └── bert/                      # HuggingFace format
+│
+├── results/                       # 📁 Evaluation outputs
+│   ├── results.json               # Detailed metrics
+│   ├── roc_curves.png             # ROC comparison
+│   └── confusion_matrices.png    # Side-by-side confusion matrices
+│
+├── train_seqxgpt.py               # Training script (robust, with early stopping)
+├── train_bert.py                  # BERT training (CPU-optimized)
+├── eval.py                        # Unified evaluation for both models
+├── run_evasion_attacks.py         # Robustness testing script
+└── verify_setup.py                # Environment verification
+```
+
+**vs. Original SeqXGPT**:
+- ✅ **Everything from the original** (SeqXGPT model, GPT-2 features, SeqXGPT-Bench dataset)
+- ✅ **+ Critical bug fixes** (normalization, NaN handling, evaluation correctness)
+- ✅ **+ BERT baseline** for direct comparison
+- ✅ **+ Modular architecture** for maintainability
+- ✅ **+ Production features** (configs, caching, checkpoints with stats)
+- ✅ **+ Complete documentation** (this README + [explanation.md](explanation.md))
 
 ---
 
@@ -61,99 +146,55 @@ python eval.py
 
 ---
 
-## Results Summary
+## 📊 Results Summary
 
-### Performance Comparison (Test Set)
+### Final Performance (Test Set - 3,591 samples)
 
-| Model | Accuracy | Precision | Recall | F1-Score | AUROC | Winner |
-|-------|----------|-----------|--------|----------|-------|--------|
-| **SeqXGPT** | **88.14%** | **92.23%** | 93.65% | **92.93%** | **91.45%** | Yes |
-| BERT (DistilBERT) | 86.22% | 87.39% | **97.53%** | 92.18% | 88.41% | - |
+| Model | Accuracy | Precision | Recall | F1-Score | AUROC | Best For |
+|-------|----------|-----------|--------|----------|-------|----------|
+| **SeqXGPT** | **88.14%** | **92.23%** | 93.65% | **92.93%** | **91.45%** | **Precision-critical apps** |
+| BERT (DistilBERT) | 86.22% | 87.39% | **97.53%** | 92.18% | 88.41% | **Recall-critical apps** |
 
-**Key Takeaways**:
--   **SeqXGPT achieves superior overall performance** with higher precision (+4.84%), F1-score (+0.75%), and AUROC (+3.04%). This makes it ideal for applications where minimizing false positives is crucial (e.g., content moderation, plagiarism detection).
--   **BERT excels in recall** (+3.88%), effectively identifying 97.5% of AI-generated text, albeit with a higher rate of false positives. It is better suited for scenarios where missing AI-generated content is more costly than false alarms (e.g., security screening, spam filtering).
+### 🔍 Key Findings
+
+**SeqXGPT wins overall** with superior precision (+4.84%), F1-score (+0.75%), and AUROC (+3.04%):
+- ✅ **Fewer false positives** – Better at avoiding misclassifying human text as AI
+- ✅ **Higher confidence** – Stronger distinction between classes (higher AUROC)
+- 🎯 **Best for**: Content moderation, plagiarism detection, academic integrity (where false accusations are costly)
+
+**BERT excels at recall** (+3.88%), catching 97.53% of AI-generated text:
+- ✅ **Catches more AI text** – Identifies nearly all AI-generated content
+- ⚠️ **More false positives** – Some human text flagged as AI
+- 🎯 **Best for**: Security screening, spam filtering (where missing AI content is more costly than false alarms)
+
+Both models achieve **>92% F1-score**, demonstrating robust detection capabilities. The choice depends on your application's cost/benefit analysis of false positives vs. false negatives.
 
 **Visualizations**: [ROC Curves](results/roc_curves.png) | [Confusion Matrices](results/confusion_matrices.png)
 
-**For in-depth technical details, FAQs, and a study guide, refer to [explanation.md](explanation.md).**
+**For detailed epoch-by-epoch training logs and technical analysis, see [explanation.md](explanation.md).**
 
 ---
 
-## 1. Project Structure
+## 1. Dataset
 
-```
-SeqXGPT-MLSEC-Project/
-├── data/                      # Dataset loaders and preprocessing scripts.
-├── dataset/                   # Raw datasets, including SeqXGPT-Bench.
-├── models/                    # Model architectures for SeqXGPT and BERT.
-├── features/                  # Code for GPT-2 log-probability feature extraction and cache.
-├── attacks/                   # Implementations of evasion attacks (paraphrasing, back-translation).
-├── configs/                   # YAML configuration files for model hyperparameters.
-├── checkpoints/               # Directory for saved model checkpoints.
-├── results/                   # Stores evaluation results, plots, and metrics.
-├── train_seqxgpt.py           # Script to train the SeqXGPT model.
-├── train_bert.py              # Script to train the BERT-based detector.
-├── eval.py                    # Script for comparative evaluation of trained models.
-├── run_evasion_attacks.py     # Script to test model robustness against attacks.
-├── verify_setup.py            # Utility for environment and dependency checks.
-├── requirements.txt           # Python dependency list.
-├── README.md                  # This document.
-└── explanation.md             # Detailed technical documentation (in Italian).
-```
-
----
-
-## 2. Installation and Setup
-
-### 2.1 Requirements
-
--   **Python**: 3.8 or higher.
--   **Hardware**: A CPU is sufficient; a GPU is optional for faster training.
--   **OS**: Windows, Linux, or macOS.
-
-### 2.2 Create Environment and Install Dependencies
-
-```bash
-# Create a Python virtual environment
-python -m venv venv
-
-# Activate the environment
-source venv/bin/activate      # Linux/macOS
-.\venv\Scripts\Activate.ps1   # Windows PowerShell
-
-# Install required Python packages
-pip install -r requirements.txt
-```
-
-**Main Dependencies**: `torch`, `transformers`, `datasets`, `scikit-learn`, `pyyaml`, `numpy`, `tqdm`, `matplotlib`, `tabulate`.
-
-### 2.3 Verify Setup
-
-```bash
-python verify_setup.py
-```
-
-This script verifies essential components: installed dependencies, dataset accessibility, GPU availability (if applicable), and correct model loading.
-
----
-
-## 3. Datasets
-
-### 3.1 SeqXGPT-Bench (Primary Dataset)
+### SeqXGPT-Bench (Primary Dataset)
 
 **Description**: A sentence-level benchmark dataset comprising human-written text and AI-generated text from various models (GPT-2, GPT-3, GPT-J, GPT-Neo, LLaMA).
-**Labels**: `0` for human-written, `1` for AI-generated.
-**Default Split**: 80% Train (28,722 samples), 10% Validation (3,591 samples), 10% Test (3,591 samples).
-**Imbalance**: The dataset is imbalanced (approx. 83% AI, 17% human), reflecting real-world scenarios.
+
+**Composition**:
+- **Total**: 36,004 samples
+- **Labels**: `0` = human, `1` = AI-generated
+- **Split**: 80% Train (28,722), 10% Val (3,591), 10% Test (3,591)
+- **Imbalance**: ~83% AI, ~17% Human (reflects real-world scenarios)
+- **Seed**: 42 (for reproducibility)
 
 **Note**: All datasets originate from the official [SeqXGPT repository](https://github.com/Jihuai-wpy/SeqXGPT).
 
 ---
 
-## 4. How It Works
+## 2. How It Works
 
-### 4.1 GPT-2 Feature Extraction (for SeqXGPT)
+### 2.1 GPT-2 Feature Extraction (for SeqXGPT)
 
 The SeqXGPT pipeline transforms input text into numerical features based on GPT-2's predictions:
 
@@ -168,7 +209,7 @@ Features [batch, 256, 3] → Cached to disk → Used in training
 
 These features capture the "statistical fingerprint" of AI-generated text, where AI models tend to produce more predictable tokens (higher log-probability, lower surprisal and entropy) compared to human writers. This process includes batch processing, automatic caching, and robust handling of numerical instabilities.
 
-### 4.2 SeqXGPT-Style Model Architecture
+### 2.2 SeqXGPT-Style Model Architecture
 
 The SeqXGPT model is a lightweight (225,922 parameters) network designed to process the GPT-2 derived features:
 
@@ -188,7 +229,7 @@ Sigmoid → Probability
 
 It combines CNN layers for local pattern recognition with multi-head self-attention for long-range dependencies, followed by an attention-based pooling mechanism to aggregate relevant information for classification.
 
-### 4.3 BERT Detector Architecture
+### 2.3 BERT Detector Architecture
 
 The BERT Detector utilizes a fine-tuned DistilBERT model (`distilbert-base-uncased`) for end-to-end binary classification:
 
@@ -200,9 +241,43 @@ DistilBERT's pre-trained knowledge allows it to learn patterns directly from raw
 
 ---
 
-## 5. Training
+## 3. Installation and Setup
 
-### 5.1 Train SeqXGPT
+### 3.1 Requirements
+
+-   **Python**: 3.8 or higher.
+-   **Hardware**: A CPU is sufficient; a GPU is optional for faster training.
+-   **OS**: Windows, Linux, or macOS.
+
+### 3.2 Create Environment and Install Dependencies
+
+```bash
+# Create a Python virtual environment
+python -m venv venv
+
+# Activate the environment
+source venv/bin/activate      # Linux/macOS
+.\venv\Scripts\Activate.ps1   # Windows PowerShell
+
+# Install required Python packages
+pip install -r requirements.txt
+```
+
+**Main Dependencies**: `torch`, `transformers`, `datasets`, `scikit-learn`, `pyyaml`, `numpy`, `tqdm`, `matplotlib`, `tabulate`.
+
+### 3.3 Verify Setup
+
+```bash
+python verify_setup.py
+```
+
+This script verifies essential components: installed dependencies, dataset accessibility, GPU availability (if applicable), and correct model loading.
+
+---
+
+## 4. Training
+
+### 4.1 Train SeqXGPT
 
 ```bash
 python train_seqxgpt.py
@@ -210,7 +285,7 @@ python train_seqxgpt.py
 
 This script trains the SeqXGPT model on the SeqXGPT-Bench dataset. It first extracts and caches GPT-2 features, normalizes them, and then trains the CNN+Attention model for up to 20 epochs. The best model, based on validation F1-score, is saved. Training takes approximately 2.5 hours on a CPU (including one-time feature extraction). For configuration details, see [`configs/seqxgpt_config.yaml`](configs/seqxgpt_config.yaml).
 
-### 5.2 Train BERT
+### 4.2 Train BERT
 
 ```bash
 python train_bert.py
@@ -220,9 +295,9 @@ This script fine-tunes DistilBERT. To optimize for CPU training speed, it uses a
 
 ---
 
-## 6. Evaluation
+## 5. Evaluation
 
-### 6.1 Comparative Evaluation
+### 5.1 Comparative Evaluation
 
 ```bash
 python eval.py
@@ -238,11 +313,11 @@ This script loads both trained SeqXGPT and BERT models, evaluates them on the te
 
 ---
 
-## 7. Inference
+## 6. Inference
 
 Examples for classifying new text using the trained models.
 
-### 7.1 SeqXGPT Inference
+### 6.1 SeqXGPT Inference
 
 ```python
 import torch
@@ -276,7 +351,7 @@ print(f"Prediction: {'AI-generated' if pred == 1 else 'Human-written'}")
 print(f"Confidence: {prob.item():.4f}")
 ```
 
-### 7.2 BERT Inference
+### 6.2 BERT Inference
 
 ```python
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -303,11 +378,11 @@ print(f"Confidence: {confidence:.4f}")
 
 ---
 
-## 8. Configuration
+## 7. Configuration
 
 All hyperparameters are defined in YAML files within the [`configs/`](configs/) directory.
 
-### 8.1 SeqXGPT Configuration Example
+### 7.1 SeqXGPT Configuration Example
 
 ```yaml
 model:
@@ -331,7 +406,7 @@ data:
   seed: 42
 ```
 
-### 8.2 BERT Configuration Example
+### 7.2 BERT Configuration Example
 
 ```yaml
 model:
@@ -354,49 +429,12 @@ data:
 
 ---
 
-## 9. Detailed Results
-
-This section provides a more in-depth look at the model performance beyond the initial summary.
-
-### 9.1 SeqXGPT Validation Results Summary
-
-The SeqXGPT model was trained for 20 epochs, achieving its best validation F1-score of **93.19%** at epoch 20, with an AUROC of 91.53%. Full epoch-wise metrics are available in [SPIEGAZIONE.md](SPIEGAZIONE.md). The model configuration and training process, including feature extraction from GPT-2 and normalization, are detailed in Section 4.1 and 5.1.
-
-### 9.2 BERT Detector Validation Results Summary
-
-The DistilBERT detector was fine-tuned efficiently, converging in just 1 epoch on a 5k sample subset. It achieved a validation F1-score of **92.42%** and an AUROC of 88.25%. This high performance with rapid convergence underscores the effectiveness of leveraging pre-trained transformer models. Detailed metrics are below:
-
-| Metric     | Value    |
-| :--------- | :------- |
-| **Accuracy** | 0.8665  |
-| **Precision**| 0.8762  |
-| **Recall**   | 0.9778  |
-| **F1-Score** | **0.9242** |
-| **AUROC**    | 0.8825  |
-
-### 9.3 Comparative Evaluation (Test Set Analysis)
-
-The final evaluation on the imbalanced test set (16.7% Human, 83.3% AI) clearly highlights the strengths of each model.
-
-| Model             | Accuracy | Precision | Recall | F1-Score | AUROC  |
-| :---------------- | -------: | --------: | -----: | -------: | -----: |
-| **SeqXGPT**       | **88.14%** | **92.23%** | 93.65% | **92.93%** | **91.45%** |
-| **BERT (DistilBERT)** | 86.22% | 87.39% | **97.53%** | 92.18% | 88.41% |
-
-**Analysis**:
-*   **SeqXGPT's Advantage**: Demonstrates superior precision, F1-score, and AUROC. Its reliance on GPT-2 log-probability features allows it to capture subtle "statistical fingerprints" of AI-generated text, leading to fewer false positives. This makes it highly suitable for applications where misclassifying human text as AI is costly.
-*   **BERT's Advantage**: Achieves exceptional recall, identifying nearly all AI-generated content. While its precision is slightly lower, its high recall makes it valuable in scenarios where the priority is to catch as much AI text as possible, even at the risk of some false alarms.
-
-Both models offer robust detection capabilities, achieving F1-scores above 92%. The choice between them depends on the specific requirements of the application, particularly the trade-off between precision and recall.
-
----
-
-## 10. Reproducibility
+## 8. Reproducibility
 
 The project prioritizes reproducibility with:
 -   A **fixed seed** (42) for consistent data splits.
 -   **YAML configurations** for all hyperparameters.
--   **Saved checkpoints** with training statistics.
+-   **Saved checkpoints** with training statistics (including feature_mean/std).
 -   **Feature caching** for deterministic results.
 
 To reproduce the results, simply run the training scripts (`train_seqxgpt.py`, `train_bert.py`) followed by the evaluation script (`eval.py`).
@@ -405,7 +443,7 @@ To reproduce the results, simply run the training scripts (`train_seqxgpt.py`, `
 
 ---
 
-## 11. License
+## 9. License
 
 This project is released under the MIT License. See [LICENSE](LICENSE) for details.
 
@@ -413,17 +451,17 @@ This project is intended for **academic and research purposes**. For production 
 
 ---
 
-## 12. Acknowledgements
+## 10. Acknowledgements
 
 This project builds upon and extends the original [SeqXGPT work](https://arxiv.org/abs/2310.08903).
 
 **Research**:
--   **SeqXGPT Authors** - Original paper and architecture.
--   [SeqXGPT GitHub Repository](https://github.com/Jihuai-wpy/SeqXGPT) - Datasets and baseline code.
+-   **SeqXGPT Authors** – Original paper and architecture.
+-   [SeqXGPT GitHub Repository](https://github.com/Jihuai-wpy/SeqXGPT) – Datasets and baseline code.
 
-**Frameworks & Libraries**: HuggingFace Transformers, PyTorch, scikit-learn.
-**Models**: OpenAI GPT-2, DistilBERT.
-**Contributors**: Eugenio (Project Lead), Sapienza University of Rome (Machine Learning Security Course).
+**Frameworks & Libraries**: HuggingFace Transformers, PyTorch, scikit-learn.  
+**Models**: OpenAI GPT-2, DistilBERT.  
+**Contributors**: Eugenio Cosimi (Project Lead), Sapienza University of Rome (Machine Learning Security Course).
 
 **Citation**:
 
@@ -450,3 +488,7 @@ And the original SeqXGPT paper:
   year={2023}
 }
 ```
+
+---
+
+**For complete technical documentation, implementation details, and FAQ, see [explanation.md](explanation.md).**
