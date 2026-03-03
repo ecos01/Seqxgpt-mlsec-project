@@ -24,7 +24,7 @@ def load_models(device):
     # Load SeqXGPT
     seqxgpt_checkpoint = Path("checkpoints/seqxgpt/best_model.pt")
     if not seqxgpt_checkpoint.exists():
-        print("⚠ SeqXGPT checkpoint not found. Train the model first.")
+        print(" SeqXGPT checkpoint not found. Train the model first.")
         seqxgpt_model = None
     else:
         with open("configs/seqxgpt_config.yaml", 'r') as f:
@@ -33,12 +33,12 @@ def load_models(device):
         seqxgpt_model = SeqXGPTModel(**config['model']).to(device)
         seqxgpt_model.load_state_dict(checkpoint['model_state_dict'])
         seqxgpt_model.eval()
-        print("✓ SeqXGPT loaded")
+        print(" SeqXGPT loaded")
     
     # Load BERT
     bert_checkpoint = Path("checkpoints/bert/best_model")
     if not bert_checkpoint.exists():
-        print("⚠ BERT checkpoint not found. Train the model first.")
+        print(" BERT checkpoint not found. Train the model first.")
         bert_model = None
     else:
         bert_model = BERTDetector()
@@ -47,7 +47,7 @@ def load_models(device):
         bert_model.tokenizer = AutoTokenizer.from_pretrained(bert_checkpoint)
         bert_model.to(device)
         bert_model.eval()
-        print("✓ BERT loaded")
+        print(" BERT loaded")
     
     return seqxgpt_model, bert_model
 
@@ -279,7 +279,7 @@ def run_evasion_tests(num_samples=100):
     with open(output_dir / "evasion_results.json", 'w') as f:
         json.dump(results_json, f, indent=2)
     
-    print(f"\n✓ Results saved to {output_dir / 'evasion_results.json'}")
+    print(f"\n Results saved to {output_dir / 'evasion_results.json'}")
     
     # Summary table
     print("\n" + "="*60)

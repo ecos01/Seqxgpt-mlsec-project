@@ -45,7 +45,7 @@ class TextAugmenter:
                 self.paraphrase_model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
                 self.paraphrase_model.to(self.device)
                 self.paraphrase_model.eval()
-                print("✓ Paraphrase model loaded")
+                print(" Paraphrase model loaded")
             except Exception as e:
                 print(f"Warning: Could not load paraphrase model: {e}")
                 print("Falling back to simple paraphrase (word replacement)")
@@ -69,7 +69,7 @@ class TextAugmenter:
                     'tokenizer': tokenizer,
                     'model': model
                 }
-                print(f"✓ Translation model loaded ({key})")
+                print(f" Translation model loaded ({key})")
             except Exception as e:
                 print(f"Warning: Could not load translation model {key}: {e}")
                 self.translation_models[key] = None
@@ -292,7 +292,7 @@ def create_attack_dataset(
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(attack_data, f, indent=2, ensure_ascii=False)
     
-    print(f"✓ Attack dataset saved to {output_file}")
+    print(f" Attack dataset saved to {output_file}")
 
 
 if __name__ == "__main__":

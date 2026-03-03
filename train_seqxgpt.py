@@ -393,7 +393,7 @@ def main():
                 'feature_mean': mean,
                 'feature_std': std
             }, output_dir / 'best_model.pt')
-            print(f"✓ Saved best model (F1: {best_f1:.4f})")
+            print(f" Saved best model (F1: {best_f1:.4f})")
         else:
             patience_counter += 1
             if patience_counter >= config['training']['early_stopping_patience']:
@@ -404,7 +404,7 @@ def main():
     with open(output_dir / 'history.json', 'w') as f:
         json.dump(history, f, indent=2)
     
-    print(f"\n✓ Training completed! Best F1: {best_f1:.4f}")
+    print(f"\n Training completed! Best F1: {best_f1:.4f}")
     print(f"Model saved to: {output_dir}")
 
 

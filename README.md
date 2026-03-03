@@ -4,14 +4,14 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-orange)](https://pytorch.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## 📖 Overview
+##  Overview
 
 This project implements a **complete, production-ready pipeline** for AI-generated text detection, extending and significantly improving upon the original [SeqXGPT](https://github.com/Jihuai-wpy/SeqXGPT) research. We compare two complementary approaches:
 
 *   **SeqXGPT-style detector** – A CNN + self-attention model leveraging GPT-2 token log-probabilities as features.
 *   **BERT-based classifier** – A fine-tuned DistilBERT model for human vs. AI text classification.
 
-### 🎯 Project Goals
+###  Project Goals
 
 This project was developed with four key objectives:
 
@@ -20,7 +20,7 @@ This project was developed with four key objectives:
 3. **BERT Baseline** – Add a fine-tuned DistilBERT model trained on the same data splits for direct comparison of feature-based vs. end-to-end fine-tuning approaches.
 4. **Unified Evaluation** – Create a single evaluation pipeline with comprehensive metrics (Accuracy, Precision, Recall, F1-score, AUROC) and visualizations.
 
-### 🔑 Key Improvements Over Original SeqXGPT
+###  Key Improvements Over Original SeqXGPT
 
 This implementation resolves **critical issues** in the original research code and adds substantial new functionality:
 
@@ -28,10 +28,10 @@ This implementation resolves **critical issues** in the original research code a
 |------------|---------------------|------------------|
 | **Architecture** | Monolithic code (553-line files) | Modular components (data, models, features, configs) |
 | **Feature Extraction** | Serial processing, slow | Batch processing with caching (2x faster) |
-| **Feature Normalization** | ❌ None (training crashes after 2-3 batches) | ✅ Z-score + clipping (stable training) |
-| **NaN Handling** | ❌ None (frequent crashes) | ✅ 5-layer protection system (0 crashes) |
-| **Evaluation Normalization** | ❌ Bug: test features not normalized (AUROC ~50%) | ✅ Fixed: uses training statistics (AUROC 91.45%) |
-| **BERT Baseline** | ❌ Not included (only RoBERTa mentioned) | ✅ Full DistilBERT implementation + comparison |
+| **Feature Normalization** |  None (training crashes after 2-3 batches) |  Z-score + clipping (stable training) |
+| **NaN Handling** |  None (frequent crashes) |  5-layer protection system (0 crashes) |
+| **Evaluation Normalization** |  Bug: test features not normalized (AUROC ~50%) |  Fixed: uses training statistics (AUROC 91.45%) |
+| **BERT Baseline** |  Not included (only RoBERTa mentioned) |  Full DistilBERT implementation + comparison |
 | **Configuration** | Hardcoded hyperparameters | External YAML configs for easy experimentation |
 | **Training Stability** | Unstable, crashes frequently | Robust with gradient clipping, early stopping |
 | **Reproducibility** | Low (no fixed seeds, no saved stats) | High (fixed seeds, saved normalization stats) |
@@ -42,7 +42,7 @@ This implementation resolves **critical issues** in the original research code a
 The primary goal is to provide a **reliable, well-documented foundation** for AI text detection research and applications such as **plagiarism detection, content moderation, and misinformation analysis**.
 
 
-## ✨ Features
+##  Features
 
 This project offers:
 
@@ -55,7 +55,7 @@ This project offers:
 *   **Exportable metrics** including JSON logs, ROC curves, confusion matrices, and model checkpoints.
 *   **Production-ready inference** with simple APIs for both models.
 
-### 🔬 Technical Implementation Highlights
+###  Technical Implementation Highlights
 
 Three critical fixes that make this project work:
 
@@ -69,35 +69,35 @@ Three critical fixes that make this project work:
 
 ---
 
-## 📦 What's Included
+##  What's Included
 
 This project provides a **complete reimplementation** of SeqXGPT with extensive improvements:
 
 ```
 Seqxgpt-mlsec-project/
-├── data/                          # 📁 Modular dataset loaders
+├── data/                          #  Modular dataset loaders
 │   ├── seqxgpt_dataset.py         # SeqXGPT-Bench loader (consistent splits)
 │   └── extra_dataset.py           # Support for additional datasets
 │
-├── models/                        # 📁 Separated model architectures
+├── models/                        #  Separated model architectures
 │   ├── seqxgpt.py                 # SeqXGPT (CNN + Attention)
 │   └── bert_detector.py           # BERT-based classifier
 │
-├── features/                      # 📁 Feature extraction module
+├── features/                      #  Feature extraction module
 │   └── llm_probs.py               # GPT-2 log-prob extraction with caching
 │
-├── attacks/                       # 📁 Robustness testing
+├── attacks/                       #  Robustness testing
 │   └── text_augmentation.py      # Paraphrasing & back-translation attacks
 │
-├── configs/                       # 📁 YAML configurations
+├── configs/                       #  YAML configurations
 │   ├── seqxgpt_config.yaml        # SeqXGPT hyperparameters
 │   └── bert_config.yaml           # BERT hyperparameters
 │
-├── checkpoints/                   # 📁 Saved models
+├── checkpoints/                   #  Saved models
 │   ├── seqxgpt/                   # Includes feature_mean/std for eval
 │   └── bert/                      # HuggingFace format
 │
-├── results/                       # 📁 Evaluation outputs
+├── results/                       #  Evaluation outputs
 │   ├── results.json               # Detailed metrics
 │   ├── roc_curves.png             # ROC comparison
 │   └── confusion_matrices.png    # Side-by-side confusion matrices
@@ -110,12 +110,12 @@ Seqxgpt-mlsec-project/
 ```
 
 **vs. Original SeqXGPT**:
-- ✅ **Everything from the original** (SeqXGPT model, GPT-2 features, SeqXGPT-Bench dataset)
-- ✅ **+ Critical bug fixes** (normalization, NaN handling, evaluation correctness)
-- ✅ **+ BERT baseline** for direct comparison
-- ✅ **+ Modular architecture** for maintainability
-- ✅ **+ Production features** (configs, caching, checkpoints with stats)
-- ✅ **+ Complete documentation** (this README + [explanation.md](explanation.md))
+-  **Everything from the original** (SeqXGPT model, GPT-2 features, SeqXGPT-Bench dataset)
+-  **+ Critical bug fixes** (normalization, NaN handling, evaluation correctness)
+-  **+ BERT baseline** for direct comparison
+-  **+ Modular architecture** for maintainability
+-  **+ Production features** (configs, caching, checkpoints with stats)
+-  **+ Complete documentation** (this README + [explanation.md](explanation.md))
 
 ---
 
@@ -146,7 +146,7 @@ python eval.py
 
 ---
 
-## 📊 Results Summary
+##  Results Summary
 
 ### Final Performance (Test Set - 3,591 samples)
 
@@ -155,17 +155,17 @@ python eval.py
 | **SeqXGPT** | **88.14%** | **92.23%** | 93.65% | **92.93%** | **91.45%** | **Precision-critical apps** |
 | BERT (DistilBERT) | 86.22% | 87.39% | **97.53%** | 92.18% | 88.41% | **Recall-critical apps** |
 
-### 🔍 Key Findings
+###  Key Findings
 
 **SeqXGPT wins overall** with superior precision (+4.84%), F1-score (+0.75%), and AUROC (+3.04%):
-- ✅ **Fewer false positives** – Better at avoiding misclassifying human text as AI
-- ✅ **Higher confidence** – Stronger distinction between classes (higher AUROC)
-- 🎯 **Best for**: Content moderation, plagiarism detection, academic integrity (where false accusations are costly)
+-  **Fewer false positives** – Better at avoiding misclassifying human text as AI
+-  **Higher confidence** – Stronger distinction between classes (higher AUROC)
+-  **Best for**: Content moderation, plagiarism detection, academic integrity (where false accusations are costly)
 
 **BERT excels at recall** (+3.88%), catching 97.53% of AI-generated text:
-- ✅ **Catches more AI text** – Identifies nearly all AI-generated content
-- ⚠️ **More false positives** – Some human text flagged as AI
-- 🎯 **Best for**: Security screening, spam filtering (where missing AI content is more costly than false alarms)
+-  **Catches more AI text** – Identifies nearly all AI-generated content
+-  **More false positives** – Some human text flagged as AI
+-  **Best for**: Security screening, spam filtering (where missing AI content is more costly than false alarms)
 
 Both models achieve **>92% F1-score**, demonstrating robust detection capabilities. The choice depends on your application's cost/benefit analysis of false positives vs. false negatives.
 

@@ -237,7 +237,7 @@ def main():
     seqxgpt_model, feature_mean, feature_std = load_seqxgpt_model(seqxgpt_checkpoint, seqxgpt_config, device)
     bert_model = load_bert_model(bert_checkpoint, device)
     
-    print("✓ Models loaded successfully")
+    print(" Models loaded successfully")
     
     # Define datasets to evaluate
     datasets_config = [
@@ -371,7 +371,7 @@ def main():
     except Exception as e:
         print(f"\nWarning: Could not generate plots: {e}")
     
-    print(f"\n✓ Evaluation completed!")
+    print(f"\n Evaluation completed!")
     print(f"Results saved to: {output_dir}")
 
 

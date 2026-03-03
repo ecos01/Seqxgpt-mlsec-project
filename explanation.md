@@ -1,33 +1,33 @@
-# 🚀 SeqXGPT-MLSEC-Project: Implementazione e Analisi
+#  SeqXGPT-MLSEC-Project: Implementazione e Analisi
 
-## 🎯 OBIETTIVI DEL PROGETTO
+##  OBIETTIVI DEL PROGETTO
 
 Questo progetto implementa un sistema di **AI-Generated Text Detection** con i seguenti obiettivi:
 
-### 1️⃣ **Dataset e Pipeline Modulare**
+### 1⃣ **Dataset e Pipeline Modulare**
 - Utilizzare **SeqXGPT-Bench** come dataset principale
 - Riorganizzare il codice in una **pipeline pulita e modulare**
 
-### 2️⃣ **SeqXGPT-Style Detector**
+### 2⃣ **SeqXGPT-Style Detector**
 - Implementare un detector seguendo l'architettura del paper SeqXGPT:
   - **GPT-2** per estrarre feature a livello di token (log-probabilities)
   - **CNN + Self-Attention** classifier per human vs AI text detection
 
-### 3️⃣ **BERT Baseline**
+### 3⃣ **BERT Baseline**
 - Aggiungere un secondo detector basato su **BERT** (bert-base-uncased)
 - Training sugli stessi split per confronto diretto
 - Comparare approccio feature-based (SeqXGPT) vs fine-tuning (BERT)
 
-### 4️⃣ **Unified Evaluation Pipeline**
+### 4⃣ **Unified Evaluation Pipeline**
 - Pipeline di valutazione unificata con metriche standard:
   - **Accuracy**, **Precision**, **Recall**, **F1-score**, **AUROC**
 - Confronto consistente tra i due modelli
 
 ---
 
-## ✅ COSA È STATO REALIZZATO
+##  COSA È STATO REALIZZATO
 
-### 📊 Risultati Finali
+###  Risultati Finali
 
 | Model | Dataset | Accuracy | Precision | Recall | F1 | AUROC |
 |-------|---------|----------|-----------|--------|-----|-------|
@@ -38,9 +38,9 @@ Questo progetto implementa un sistema di **AI-Generated Text Detection** con i s
 
 ---
 
-## 🔍 DEFINIZIONE: Cosa C'è nell'Originale vs Cosa Ho Implementato
+##  DEFINIZIONE: Cosa C'è nell'Originale vs Cosa Ho Implementato
 
-### 📦 PROGETTO ORIGINALE: SeqXGPT (Repository GitHub)
+###  PROGETTO ORIGINALE: SeqXGPT (Repository GitHub)
 
 **Cosa contiene**:
 ```
@@ -59,117 +59,117 @@ SeqXGPT/SeqXGPT/
 ```
 
 **Caratteristiche**:
-- ✅ **Modello SeqXGPT**: CNN + Transformer per AI detection
-- ✅ **Feature extraction**: GPT-2 log-probabilities
-- ✅ **Dataset**: SeqXGPT-Bench
-- ❌ **NO architettura modulare**: Codice monolitico in pochi file
-- ❌ **NO configurazioni esterne**: Tutto hardcoded
-- ❌ **NO gestione NaN**: Training crash frequenti
-- ❌ **NO normalizzazione features**: Loss esplode
-- ❌ **NO BERT baseline**: Solo RoBERTa come baseline
-- ❌ **NO eval unificata**: Script separati per ogni modello
-- ❌ **Feature extraction seriale**: Lenta (un testo alla volta)
-- ❌ **Bug critico eval**: Test features non normalizzate → AUROC random
+-  **Modello SeqXGPT**: CNN + Transformer per AI detection
+-  **Feature extraction**: GPT-2 log-probabilities
+-  **Dataset**: SeqXGPT-Bench
+-  **NO architettura modulare**: Codice monolitico in pochi file
+-  **NO configurazioni esterne**: Tutto hardcoded
+-  **NO gestione NaN**: Training crash frequenti
+-  **NO normalizzazione features**: Loss esplode
+-  **NO BERT baseline**: Solo RoBERTa come baseline
+-  **NO eval unificata**: Script separati per ogni modello
+-  **Feature extraction seriale**: Lenta (un testo alla volta)
+-  **Bug critico eval**: Test features non normalizzate → AUROC random
 
 **In sintesi**: Il progetto originale è un proof-of-concept con SeqXGPT funzionante ma instabile, codice disorganizzato, e senza confronto diretto con BERT.
 
 ---
 
-### 🚀 QUESTO PROGETTO: Seqxgpt-mlsec-project
+###  QUESTO PROGETTO: Seqxgpt-mlsec-project
 
 **Cosa contiene**:
 ```
 Seqxgpt-mlsec-project/
-├── data/                          # 📁 Dataset loaders MODULARI
-│   ├── seqxgpt_dataset.py         # ✅ NUOVO: Loader SeqXGPT-Bench
-│   └── extra_dataset.py           # ✅ NUOVO: Loader dataset extra
+├── data/                          #  Dataset loaders MODULARI
+│   ├── seqxgpt_dataset.py         #  NUOVO: Loader SeqXGPT-Bench
+│   └── extra_dataset.py           #  NUOVO: Loader dataset extra
 │
-├── models/                        # 📁 Architetture SEPARATE
-│   ├── seqxgpt.py                 # ✅ RISCRITTO: SeqXGPT pulito
-│   └── bert_detector.py           # ✅ NUOVO: BERT classifier
+├── models/                        #  Architetture SEPARATE
+│   ├── seqxgpt.py                 #  RISCRITTO: SeqXGPT pulito
+│   └── bert_detector.py           #  NUOVO: BERT classifier
 │
-├── features/                      # 📁 Feature extraction ISOLATA
-│   └── llm_probs.py               # ✅ RISCRITTO: GPT-2 con batch processing
+├── features/                      #  Feature extraction ISOLATA
+│   └── llm_probs.py               #  RISCRITTO: GPT-2 con batch processing
 │
-├── attacks/                       # 📁 Evasion attacks
-│   └── text_augmentation.py      # ✅ NUOVO: Paraphrase, back-translation
+├── attacks/                       #  Evasion attacks
+│   └── text_augmentation.py      #  NUOVO: Paraphrase, back-translation
 │
-├── configs/                       # 📁 Configurazioni YAML
-│   ├── seqxgpt_config.yaml        # ✅ NUOVO: Config SeqXGPT
-│   └── bert_config.yaml           # ✅ NUOVO: Config BERT
+├── configs/                       #  Configurazioni YAML
+│   ├── seqxgpt_config.yaml        #  NUOVO: Config SeqXGPT
+│   └── bert_config.yaml           #  NUOVO: Config BERT
 │
-├── checkpoints/                   # 📁 Modelli trained
-│   ├── seqxgpt/best_model.pt      # ✅ Include mean/std per eval!
-│   └── bert/best_model/           # ✅ BERT checkpoint
+├── checkpoints/                   #  Modelli trained
+│   ├── seqxgpt/best_model.pt      #  Include mean/std per eval!
+│   └── bert/best_model/           #  BERT checkpoint
 │
-├── results/                       # 📁 Output valutazione
-│   ├── results.json               # ✅ NUOVO: Metriche JSON
-│   ├── roc_curves.png             # ✅ NUOVO: Grafici ROC
-│   └── confusion_matrices.png    # ✅ NUOVO: Confusion matrices
+├── results/                       #  Output valutazione
+│   ├── results.json               #  NUOVO: Metriche JSON
+│   ├── roc_curves.png             #  NUOVO: Grafici ROC
+│   └── confusion_matrices.png    #  NUOVO: Confusion matrices
 │
-├── train_seqxgpt.py               # ✅ RISCRITTO: Training robusto
-├── train_bert.py                  # ✅ NUOVO: Training BERT
-├── eval.py                        # ✅ NUOVO: Eval unificata
-├── run_evasion_attacks.py         # ✅ NUOVO: Test robustness
-└── verify_setup.py                # ✅ NUOVO: Sanity checks
+├── train_seqxgpt.py               #  RISCRITTO: Training robusto
+├── train_bert.py                  #  NUOVO: Training BERT
+├── eval.py                        #  NUOVO: Eval unificata
+├── run_evasion_attacks.py         #  NUOVO: Test robustness
+└── verify_setup.py                #  NUOVO: Sanity checks
 ```
 
 **Caratteristiche**:
-- ✅ **Tutto dall'originale** + miglioramenti sostanziali
-- ✅ **Architettura modulare**: Codice organizzato per componenti
-- ✅ **Configurazioni YAML**: Sperimentazione senza toccare codice
-- ✅ **5-layer NaN handling**: Training stabile, 0 crash
-- ✅ **Feature normalization**: Z-score + clipping → training converge
-- ✅ **BERT baseline**: Confronto diretto feature-based vs fine-tuning
-- ✅ **Eval unificata**: Script unico con tutte le metriche
-- ✅ **Batch processing**: Feature extraction 2x più veloce
-- ✅ **Fix eval normalization**: AUROC da 50% → 91.45%
-- ✅ **Feature caching**: Risparmia ore di ricomputo
-- ✅ **Evasion attacks**: Framework per robustness testing
-- ✅ **Documentazione completa**: README + explanation.md
+-  **Tutto dall'originale** + miglioramenti sostanziali
+-  **Architettura modulare**: Codice organizzato per componenti
+-  **Configurazioni YAML**: Sperimentazione senza toccare codice
+-  **5-layer NaN handling**: Training stabile, 0 crash
+-  **Feature normalization**: Z-score + clipping → training converge
+-  **BERT baseline**: Confronto diretto feature-based vs fine-tuning
+-  **Eval unificata**: Script unico con tutte le metriche
+-  **Batch processing**: Feature extraction 2x più veloce
+-  **Fix eval normalization**: AUROC da 50% → 91.45%
+-  **Feature caching**: Risparmia ore di ricomputo
+-  **Evasion attacks**: Framework per robustness testing
+-  **Documentazione completa**: README + explanation.md
 
 **In sintesi**: Questo progetto prende l'idea di SeqXGPT, la **implementa correttamente** con codice stabile e pulito, **aggiunge BERT** per confronto, e fornisce una **pipeline completa** di training/evaluation/robustness testing.
 
 ---
 
-## 📊 TABELLA COMPARATIVA DETTAGLIATA
+##  TABELLA COMPARATIVA DETTAGLIATA
 
 | Componente | Originale SeqXGPT | Questo Progetto | Differenza |
 |------------|-------------------|-----------------|------------|
-| **Dataset** | SeqXGPT-Bench (disorganizzato) | SeqXGPT-Bench (loader modulare) | ✅ Riorganizzato |
-| **Split** | Random, non riproducibile | 80/10/10, seed=42 | ✅ Riproducibile |
-| **Feature Extraction** | Seriale, 553 righe monolitiche | Batch processing, modulare | ✅ 2x velocità |
-| **GPT-2 features** | Log-prob solo | Log-prob + surprisal + entropy | ✅ 3 features |
-| **Feature cache** | No | Sì (pickle su disco) | ✅ Risparmia ore |
-| **Feature normalization** | ❌ NO | Z-score + clipping | ✅ CRITICO! |
-| **SeqXGPT model** | CRF + position encoding | CNN + Attention semplificato | ✅ Più pulito |
-| **Residual connections** | Unclear | CNN + Attention | ✅ Convergenza |
-| **NaN handling** | ❌ NO | 5 layer di protezione | ✅ CRITICO! |
-| **Gradient clipping** | ❌ NO | max_norm=1.0 | ✅ Stabilità |
-| **Training result** | Crash dopo 2-3 batch | Stabile 20 epochs | ✅ Funziona! |
-| **BERT baseline** | ❌ NO (solo RoBERTa) | DistilBERT | ✅ NUOVO! |
-| **BERT training** | N/A | Ottimizzato CPU (15min) | ✅ NUOVO! |
-| **Eval script** | Separati per modello | Unificato | ✅ NUOVO! |
-| **Eval normalization** | ❌ BUG (test non normalizzato) | Fix (usa train stats) | ✅ CRITICO! |
-| **AUROC SeqXGPT** | ~50% (bug eval) | 91.45% (corretto) | ✅ +41%! |
-| **Metriche** | Accuracy, F1 | Acc, Prec, Rec, F1, AUROC | ✅ Complete |
-| **Visualizzazioni** | No | ROC curves, confusion matrix | ✅ NUOVO! |
-| **Config files** | Hardcoded | YAML esterni | ✅ Sperimentazione |
-| **Evasion attacks** | ❌ NO | Paraphrase, back-translation | ✅ NUOVO! |
-| **Documentazione** | README minimo | README + explanation.md | ✅ Completa |
-| **Riproducibilità** | Bassa | Alta (seed, config) | ✅ Paper-ready |
+| **Dataset** | SeqXGPT-Bench (disorganizzato) | SeqXGPT-Bench (loader modulare) |  Riorganizzato |
+| **Split** | Random, non riproducibile | 80/10/10, seed=42 |  Riproducibile |
+| **Feature Extraction** | Seriale, 553 righe monolitiche | Batch processing, modulare |  2x velocità |
+| **GPT-2 features** | Log-prob solo | Log-prob + surprisal + entropy |  3 features |
+| **Feature cache** | No | Sì (pickle su disco) |  Risparmia ore |
+| **Feature normalization** |  NO | Z-score + clipping |  CRITICO! |
+| **SeqXGPT model** | CRF + position encoding | CNN + Attention semplificato |  Più pulito |
+| **Residual connections** | Unclear | CNN + Attention |  Convergenza |
+| **NaN handling** |  NO | 5 layer di protezione |  CRITICO! |
+| **Gradient clipping** |  NO | max_norm=1.0 |  Stabilità |
+| **Training result** | Crash dopo 2-3 batch | Stabile 20 epochs |  Funziona! |
+| **BERT baseline** |  NO (solo RoBERTa) | DistilBERT |  NUOVO! |
+| **BERT training** | N/A | Ottimizzato CPU (15min) |  NUOVO! |
+| **Eval script** | Separati per modello | Unificato |  NUOVO! |
+| **Eval normalization** |  BUG (test non normalizzato) | Fix (usa train stats) |  CRITICO! |
+| **AUROC SeqXGPT** | ~50% (bug eval) | 91.45% (corretto) |  +41%! |
+| **Metriche** | Accuracy, F1 | Acc, Prec, Rec, F1, AUROC |  Complete |
+| **Visualizzazioni** | No | ROC curves, confusion matrix |  NUOVO! |
+| **Config files** | Hardcoded | YAML esterni |  Sperimentazione |
+| **Evasion attacks** |  NO | Paraphrase, back-translation |  NUOVO! |
+| **Documentazione** | README minimo | README + explanation.md |  Completa |
+| **Riproducibilità** | Bassa | Alta (seed, config) |  Paper-ready |
 
 ---
 
-## 🎯 LE 3 IMPLEMENTAZIONI CRITICHE CHE FANNO FUNZIONARE IL PROGETTO
+##  LE 3 IMPLEMENTAZIONI CRITICHE CHE FANNO FUNZIONARE IL PROGETTO
 
-### 1️⃣ **Feature Normalization** (Senza: Training Esplode)
+### 1⃣ **Feature Normalization** (Senza: Training Esplode)
 
 **Originale**:
 ```python
 # backend_model.py (originale)
 features = extract_log_probs(text)  # Range [-∞, 0] per log-prob
-model.train(features)  # 💥 NaN loss dopo 2-3 batch
+model.train(features)  #  NaN loss dopo 2-3 batch
 ```
 
 **Questo Progetto**:
@@ -195,7 +195,7 @@ torch.save({
 
 ---
 
-### 2️⃣ **Eval Normalization Fix** (Senza: AUROC Random 50%)
+### 2⃣ **Eval Normalization Fix** (Senza: AUROC Random 50%)
 
 **Originale**:
 ```python
@@ -207,7 +207,7 @@ model.train(train_features)
 
 # Eval - BUG!
 test_features = extract(test_texts)
-# ❌ NON normalizza con mean/std del training!
+#  NON normalizza con mean/std del training!
 predictions = model(test_features)
 # Risultato: AUROC ~50% (random)
 ```
@@ -223,7 +223,7 @@ std = checkpoint['feature_std']
 
 # Eval - CORRETTO!
 test_features = extract(test_texts)
-test_features = (test_features - mean) / std  # ✅ Usa train stats!
+test_features = (test_features - mean) / std  #  Usa train stats!
 predictions = model(test_features)
 # Risultato: AUROC 91.45% (corretto)
 ```
@@ -232,13 +232,13 @@ predictions = model(test_features)
 
 ---
 
-### 3️⃣ **Multi-Level NaN Handling** (Senza: Crash Continui)
+### 3⃣ **Multi-Level NaN Handling** (Senza: Crash Continui)
 
 **Originale**:
 ```python
 # Nessuna protezione
 loss = criterion(model(features), labels)
-loss.backward()  # 💥 Può crashare per NaN
+loss.backward()  #  Può crashare per NaN
 ```
 
 **Questo Progetto**:
@@ -273,11 +273,11 @@ if torch.isnan(grad_norm):
 
 ---
 
-### 🏗️ Implementazione Completa
+###  Implementazione Completa
 
-#### ✅ 1. Dataset e Pipeline Modulare - DETTAGLI IMPLEMENTAZIONE
+####  1. Dataset e Pipeline Modulare - DETTAGLI IMPLEMENTAZIONE
 
-##### 📊 **Dataset: SeqXGPT-Bench**
+#####  **Dataset: SeqXGPT-Bench**
 
 **Composizione**:
 - **Totale**: 36,004 samples
@@ -350,11 +350,11 @@ class SeqXGPTDataset:
 ```
 
 **Perché questo approccio?**
-- ✅ **Seed fisso**: Ogni run produce stesso split
-- ✅ **Shuffle prima split**: Evita bias da ordinamento file
-- ✅ **Interfaccia uniforme**: `get_texts_and_labels()` per entrambi i modelli
+-  **Seed fisso**: Ogni run produce stesso split
+-  **Shuffle prima split**: Evita bias da ordinamento file
+-  **Interfaccia uniforme**: `get_texts_and_labels()` per entrambi i modelli
 
-##### 🏗️ **Pipeline Modulare**
+#####  **Pipeline Modulare**
 
 **Architettura Implementata**:
 ```
@@ -376,9 +376,9 @@ Seqxgpt-mlsec-project/
 └── verify_setup.py            # Environment checks
 ```
 
-#### ✅ 2. SeqXGPT-Style Detector - DETTAGLI IMPLEMENTAZIONE
+####  2. SeqXGPT-Style Detector - DETTAGLI IMPLEMENTAZIONE
 
-##### 🔬 **Feature Extraction da GPT-2** (`features/llm_probs.py`)
+#####  **Feature Extraction da GPT-2** (`features/llm_probs.py`)
 
 **Modello Base**: GPT-2 (`gpt2` da HuggingFace)
 - **Parametri**: 124M
@@ -413,7 +413,7 @@ Seqxgpt-mlsec-project/
     ↓
 4. Attention-Weighted P - DETTAGLI IMPLEMENTAZIONE
 
-##### 🤖 **Scelta del Modello**
+#####  **Scelta del Modello**
 
 **Modello Scelto**: `distilbert-base-uncased`
 
@@ -421,13 +421,13 @@ Seqxgpt-mlsec-project/
 
 | Aspetto | BERT-base | DistilBERT | Decisione |
 |---------|-----------|------------|-----------|
-| Parametri | 110M | 66M (-40%) | ✅ Più leggero |
-| Layers | 12 | 6 (-50%) | ✅ Più veloce |
-| Hidden size | 768 | 768 (=) | ✅ Stessa capacità |
-| Attention heads | 12 | 12 (=) | ✅ Stesso meccanismo |
-| Training speed | 1x | ~2x | ✅ CPU-friendly |
-| Performance | 100% | 97-99% | ✅ Loss accettabile |
-| Training time (5k) | ~30 min | ~15 min | ✅ Dimezzato |
+| Parametri | 110M | 66M (-40%) |  Più leggero |
+| Layers | 12 | 6 (-50%) |  Più veloce |
+| Hidden size | 768 | 768 (=) |  Stessa capacità |
+| Attention heads | 12 | 12 (=) |  Stesso meccanismo |
+| Training speed | 1x | ~2x |  CPU-friendly |
+| Performance | 100% | 97-99% |  Loss accettabile |
+| Training time (5k) | ~30 min | ~15 min |  Dimezzato |
 
 **Motivazione Tecnica**:
 - Training su **CPU** (no GPU disponibile)
@@ -435,7 +435,7 @@ Seqxgpt-mlsec-project/
 - Distillation da BERT durante pre-training
 - Ideale per vincoli computazionali
 
-##### 📝 **Implementazione** (`models/bert_detector.py`)
+#####  **Implementazione** (`models/bert_detector.py`)
 
 ```python
 class BERTDetector(nn.Module):
@@ -492,7 +492,7 @@ Linear Classifier (768 → 2)
 Softmax → [P(human), P(AI)]
 ```
 
-##### 🎯 **Training Strategy**
+#####  **Training Strategy**
 
 **Configurazione** (`configs/bert_config.yaml`):
 ```yaml
@@ -569,7 +569,7 @@ def train_epoch(model, dataloader, optimizer, device):
         labels = batch['label'].to(device)
          - DETTAGLI IMPLEMENTAZIONE
 
-##### 📊 **Script Unificato** (`eval.py`)
+#####  **Script Unificato** (`eval.py`)
 
 **Obiettivo**: Valutare entrambi i modelli sullo stesso test set con metriche identiche per confronto diretto.
 
@@ -769,10 +769,10 @@ def main():
     plot_confusion_matrices(results)
     generate_table(results)
     
-    print("\n✓ Evaluation completed!")
+    print("\n Evaluation completed!")
 ```
 
-##### 📈 **Output Generati**
+#####  **Output Generati**
 
 **1. JSON Results** (`results/results.json`):
 ```json
@@ -829,23 +829,23 @@ Recall:    93.65%        Recall:    97.53%
 +---------+---------------+--------+--------+--------+--------+---------+
 ```
 
-##### ✅ **Verifica Correttezza Eval**
+#####  **Verifica Correttezza Eval**
 
 **Checklist Implementazione**:
-- ✅ Same test split (seed=42)
-- ✅ Same 3,591 samples per entrambi
-- ✅ SeqXGPT: Features normalizzate con train stats
-- ✅ BERT: Tokenization standard
-- ✅ Threshold 0.5 per binary classification
-- ✅ Tutte e 5 metriche calcolate
-- ✅ Confusion matrix per analisi errori
-- ✅ Output salvati e visualizzati
+-  Same test split (seed=42)
+-  Same 3,591 samples per entrambi
+-  SeqXGPT: Features normalizzate con train stats
+-  BERT: Tokenization standard
+-  Threshold 0.5 per binary classification
+-  Tutte e 5 metriche calcolate
+-  Confusion matrix per analisi errori
+-  Output salvati e visualizzati
 
 **Fix Critico Applicato**:
 ```python
 # PRIMA (buggy):
 test_features = extract_features(test_texts)
-# ❌ Non normalizza con train stats
+#  Non normalizza con train stats
 predictions = model(test_features)
 # Risultato: AUROC ~50%
 
@@ -855,7 +855,7 @@ mean = checkpoint['feature_mean']  # ← Train stats
 std = checkpoint['feature_std']
 
 test_features = extract_features(test_texts)
-test_features = (test_features - mean) / std  # ✅ Normalizza
+test_features = (test_features - mean) / std  #  Normalizza
 predictions = model(test_features)
 # Risultato: AUROC 91.45%
 ```
@@ -898,7 +898,7 @@ Subset (5k samples):
 - **F1-score**: 92.18%
 - **AUROC**: 88.41%
 
-##### 🔬 **Confronto Feature-Based vs Fine-Tuning**
+#####  **Confronto Feature-Based vs Fine-Tuning**
 
 | Aspetto | SeqXGPT (Feature-Based) | BERT (Fine-Tuning) |
 |---------|------------------------|-------------------|
@@ -906,10 +906,10 @@ Subset (5k samples):
 | **Features** | 3 statistical signals | Contextual embeddings |
 | **Approach** | Explicit feature engineering | Learn from data |
 | **Interpretability** | Alta (features chiare) | Bassa (black box) |
-| **Precision** | 92.23% ✅ | 87.39% |
-| **Recall** | 93.65% | 97.53% ✅ |
-| **F1** | 92.93% ✅ | 92.18% |
-| **AUROC** | 91.45% ✅ | 88.41% |
+| **Precision** | 92.23%  | 87.39% |
+| **Recall** | 93.65% | 97.53%  |
+| **F1** | 92.93%  | 92.18% |
+| **AUROC** | 91.45%  | 88.41% |
 | **Training time** | ~2.5h (feature+train) | ~15min (subset) |
 | **Inference** | Richiede GPT-2 | Solo BERT |
 
@@ -1217,7 +1217,7 @@ for epoch in range(num_epochs):
 
 **Output Shape**: `[batch_size, 256, 3]`
 
-##### 🧠 **Architettura SeqXGPT** (`models/seqxgpt.py`)
+#####  **Architettura SeqXGPT** (`models/seqxgpt.py`)
 
 **Design Completo**:
 ```
@@ -1240,7 +1240,7 @@ Sigmoid → Binary Prediction (0=human, 1=AI)
 - **Training**: AdamW, lr=5e-5, early stopping su validation F1
 - **Best Result**: F1=92.93%, AUROC=91.45%
 
-#### ✅ 3. BERT Baseline
+####  3. BERT Baseline
 
 **Implementazione** (`models/bert_detector.py`):
 - **Modello**: `distilbert-base-uncased` (invece di bert-base-uncased)
@@ -1257,17 +1257,17 @@ Sigmoid → Binary Prediction (0=human, 1=AI)
 - **SeqXGPT (feature-based)**: Precision 92.23%, usa signature statistica AI
 - **BERT (fine-tuning)**: Recall 97.53%, pattern linguistici generali
 
-#### ✅ 4. Unified Evaluation Pipeline
+####  4. Unified Evaluation Pipeline
 
 **Script** (`eval.py`):
 - Carica entrambi i modelli da checkpoints
 - Valuta su stesso test set (3,591 samples)
 - Calcola tutte le metriche richieste:
-  - ✅ **Accuracy**
-  - ✅ **Precision**
-  - ✅ **Recall**
-  - ✅ **F1-score**
-  - ✅ **AUROC**
+  -  **Accuracy**
+  -  **Precision**
+  -  **Recall**
+  -  **F1-score**
+  -  **AUROC**
 
 **Output Generati**:
 - `results/results.json` - Metriche numeriche
@@ -1277,21 +1277,21 @@ Sigmoid → Binary Prediction (0=human, 1=AI)
 
 ---
 
-## 📊 Panoramica Generale: Differenze vs Repository Originale
+##  Panoramica Generale: Differenze vs Repository Originale
 
 | Aspetto | Repository Originale | Seqxgpt-mlsec-project |
 |---------|---------------------|------------------------|
-| **Focus** | Solo SeqXGPT | SeqXGPT + BERT (comparazione) ✅ |
-| **Architettura Codice** | Monolitica | Modulare e componentizzata ✅ |
-| **Configurazioni** | Hardcoded | File YAML esterni ✅ |
-| **Gestione NaN** | Assente → crash frequenti | 5 livelli di protezione ✅ |
-| **Feature Extraction** | Seriale (lenta) | Batch processing (2x veloce) ✅ |
-| **Normalizzazione** | Assente | Z-score + clipping ✅ |
-| **Training Time** | Non ottimizzato | CPU-friendly (15min BERT) ✅ |
-| **Baseline** | Nessuno | BERT/DistilBERT ✅ |
-| **Eval Pipeline** | Separata | Unificata con tutte le metriche ✅ |
-| **Riproducibilità** | Limitata | Seed fisso + config YAML ✅ |
-| **Documentazione** | Minima | Completa (README + explanation) ✅ |
+| **Focus** | Solo SeqXGPT | SeqXGPT + BERT (comparazione)  |
+| **Architettura Codice** | Monolitica | Modulare e componentizzata  |
+| **Configurazioni** | Hardcoded | File YAML esterni  |
+| **Gestione NaN** | Assente → crash frequenti | 5 livelli di protezione  |
+| **Feature Extraction** | Seriale (lenta) | Batch processing (2x veloce)  |
+| **Normalizzazione** | Assente | Z-score + clipping  |
+| **Training Time** | Non ottimizzato | CPU-friendly (15min BERT)  |
+| **Baseline** | Nessuno | BERT/DistilBERT  |
+| **Eval Pipeline** | Separata | Unificata con tutte le metriche  |
+| **Riproducibilità** | Limitata | Seed fisso + config YAML  |
+| **Documentazione** | Minima | Completa (README + explanation)  |
 
 1. [Obiettivi del Progetto](#-obiettivi-del-progetto)
 2. [Cosa è Stato Realizzato](#-cosa-è-stato-realizzato)
@@ -1310,9 +1310,9 @@ Sigmoid → Binary Prediction (0=human, 1=AI)
 
 ---
 
-## 1️⃣ ARCHITETTURA DEL PROGETTO
+## 1⃣ ARCHITETTURA DEL PROGETTO
 
-### 🔴 **Originale**: Script Monolitici
+###  **Originale**: Script Monolitici
 
 ```
 SeqXGPT/SeqXGPT/
@@ -1323,7 +1323,7 @@ SeqXGPT/SeqXGPT/
 └── backend_model.py      # 553 righe, feature extraction mescolata
 ```
 
-### 🟢 **Evoluto**: Architettura Modulare
+###  **Evoluto**: Architettura Modulare
 
 ```
 Seqxgpt-mlsec-project/
@@ -1347,22 +1347,22 @@ Seqxgpt-mlsec-project/
 ```
 
 **Vantaggi Evoluzione**:
-- ✅ Separazione responsabilità (SoC)
-- ✅ Codice testabile e riutilizzabile
-- ✅ Facile aggiungere nuovi modelli/dataset
-- ✅ Configurazioni sperimentali senza toccare codice
+-  Separazione responsabilità (SoC)
+-  Codice testabile e riutilizzabile
+-  Facile aggiungere nuovi modelli/dataset
+-  Configurazioni sperimentali senza toccare codice
 
 ---
 
-## 2️⃣ FEATURE EXTRACTION (CRITICO!)
+## 2⃣ FEATURE EXTRACTION (CRITICO!)
 
-### 🔴 **Originale**: Lenta e Instabile
+###  **Originale**: Lenta e Instabile
 
 ```python
 # backend_model.py (originale)
 class SnifferGPT2Model:
     def forward_calc_ppl(self):
-        # 🚨 Estrazione SERIALE (un testo alla volta)
+        #  Estrazione SERIALE (un testo alla volta)
         for text in texts:
             tokens = tokenizer(text)
             output = model(tokens)
@@ -1372,11 +1372,11 @@ class SnifferGPT2Model:
 ```
 
 **Problemi**:
-- ⛔ **Velocità**: ~2.2 it/s → 3 ore per 28k samples
-- ⛔ **NaN crashes**: Feature non validate → training esplode
-- ⛔ **No caching**: Ri-calcolo ad ogni epoch
+-  **Velocità**: ~2.2 it/s → 3 ore per 28k samples
+-  **NaN crashes**: Feature non validate → training esplode
+-  **No caching**: Ri-calcolo ad ogni epoch
 
-### 🟢 **Evoluto**: Veloce e Robusta
+###  **Evoluto**: Veloce e Robusta
 
 ```python
 # features/llm_probs.py (evoluto)
@@ -1399,12 +1399,12 @@ class LLMProbExtractor:
                 with torch.amp.autocast('cuda'):
                     outputs = self.model(...)
         
-        # 🛡️ LAYER 1: NaN handling immediato
+        #  LAYER 1: NaN handling immediato
         log_probs = np.nan_to_num(log_probs, nan=0.0, neginf=-20.0)
         surprisal = np.nan_to_num(surprisal, posinf=20.0)
         entropy = np.nan_to_num(entropy, posinf=10.0)
         
-        # 🛡️ LAYER 2: Clipping
+        #  LAYER 2: Clipping
         log_probs = np.clip(log_probs, -20.0, 0.0)
         surprisal = np.clip(surprisal, 0.0, 20.0)
         entropy = np.clip(entropy, 0.0, 15.0)
@@ -1438,22 +1438,22 @@ Speedup:   ~2x
 ```
 
 **Innovazioni**:
-1. ✅ **Batch processing**: 16-32 testi simultaneamente
-2. ✅ **FP16 su GPU**: Usa half-precision per velocità
-3. ✅ **Multi-level NaN handling**: 2 layer di protezione
-4. ✅ **Caching intelligente**: Risparmia ore di ricomputo
-5. ✅ **Range clipping**: Valori entro limiti ragionevoli
+1.  **Batch processing**: 16-32 testi simultaneamente
+2.  **FP16 su GPU**: Usa half-precision per velocità
+3.  **Multi-level NaN handling**: 2 layer di protezione
+4.  **Caching intelligente**: Risparmia ore di ricomputo
+5.  **Range clipping**: Valori entro limiti ragionevoli
 
 ---
 
-## 3️⃣ NORMALIZZAZIONE FEATURES (FIX CRITICO!)
+## 3⃣ NORMALIZZAZIONE FEATURES (FIX CRITICO!)
 
-### 🔴 **Originale**: ASSENTE → Training Esplode
+###  **Originale**: ASSENTE → Training Esplode
 
 ```python
 # NO NORMALIZATION!
 features = extract_features(texts)
-model.train(features)  # 💥 NaN loss dopo 2-3 batch
+model.train(features)  #  NaN loss dopo 2-3 batch
 ```
 
 **Problema**:
@@ -1461,12 +1461,12 @@ model.train(features)  # 💥 NaN loss dopo 2-3 batch
 - Surprisal: Range `[0, +∞]` → Gradienti esplodono
 - CNN/Attention: Sensibili a scale diverse → NaN
 
-### 🟢 **Evoluto**: Z-Score + Clipping (SALVAVITA!)
+###  **Evoluto**: Z-Score + Clipping (SALVAVITA!)
 
 ```python
 # train_seqxgpt.py (evoluto)
 def normalize_features(feature_dicts):
-    """🛡️ LAYER 3: Feature normalization"""
+    """ LAYER 3: Feature normalization"""
     # Calcola statistiche SOLO su training set
     all_features = np.concatenate([
         fd['features'][:fd['actual_length']] 
@@ -1481,10 +1481,10 @@ def normalize_features(feature_dicts):
     for fd in feature_dicts:
         fd['features'] = (fd['features'] - mean) / std
         
-        # 🛡️ Extra cleaning
+        #  Extra cleaning
         fd['features'] = np.nan_to_num(fd['features'])
         
-        # 🛡️ Clip to [-5, +5]
+        #  Clip to [-5, +5]
         fd['features'] = np.clip(fd['features'], -5.0, 5.0)
     
     return feature_dicts, mean, std  # ← Salva statistiche!
@@ -1492,7 +1492,7 @@ def normalize_features(feature_dicts):
 # Training
 train_features, mean, std = normalize_features(train_features)
 
-# 🚨 CRITICAL: Salva nel checkpoint!
+#  CRITICAL: Salva nel checkpoint!
 torch.save({
     'model_state_dict': model.state_dict(),
     'feature_mean': mean,  # ← CRUCIALE!
@@ -1513,9 +1513,9 @@ After normalization:
 
 ---
 
-## 4️⃣ TRAINING SEQXGPT
+## 4⃣ TRAINING SEQXGPT
 
-### 🔴 **Originale**: Instabile
+###  **Originale**: Instabile
 
 ```python
 # train.py (originale)
@@ -1524,17 +1524,17 @@ for epoch in epochs:
         loss = criterion(model(features), labels)
         loss.backward()
         optimizer.step()
-        # 💥 Crash frequenti per NaN loss
+        #  Crash frequenti per NaN loss
 ```
 
-### 🟢 **Evoluto**: Robusto con 5 Layer di Protezione
+###  **Evoluto**: Robusto con 5 Layer di Protezione
 
 ```python
 # train_seqxgpt.py (evoluto)
 def train_epoch(model, dataloader, optimizer, criterion, device):
     for batch_idx, (features, masks, labels) in enumerate(dataloader):
         
-        # 🛡️ LAYER 4: Pre-forward cleaning
+        #  LAYER 4: Pre-forward cleaning
         features = torch.nan_to_num(features, nan=0.0)
         features = torch.clamp(features, -5.0, 5.0)
         
@@ -1549,14 +1549,14 @@ def train_epoch(model, dataloader, optimizer, criterion, device):
             logits = model(features, masks)
             loss = criterion(logits, labels)
             
-            # 🛡️ LAYER 5: Check loss
+            #  LAYER 5: Check loss
             if torch.isnan(loss) or torch.isinf(loss):
                 print(f"Batch {batch_idx}: Invalid loss, skipping")
                 continue
             
             loss.backward()
             
-            # 🛡️ GRADIENT CLIPPING (fondamentale!)
+            #  GRADIENT CLIPPING (fondamentale!)
             grad_norm = torch.nn.utils.clip_grad_norm_(
                 model.parameters(), 
                 max_norm=1.0  # ← Previene esplosione
@@ -1576,11 +1576,11 @@ def train_epoch(model, dataloader, optimizer, criterion, device):
 ```
 
 **5 Layer di Protezione**:
-1. ✅ **Layer 1**: NaN handling in feature extraction
-2. ✅ **Layer 2**: Clipping in feature extraction
-3. ✅ **Layer 3**: Z-score normalization
-4. ✅ **Layer 4**: Pre-forward cleaning
-5. ✅ **Layer 5**: Gradient clipping + loss validation
+1.  **Layer 1**: NaN handling in feature extraction
+2.  **Layer 2**: Clipping in feature extraction
+3.  **Layer 3**: Z-score normalization
+4.  **Layer 4**: Pre-forward cleaning
+5.  **Layer 5**: Gradient clipping + loss validation
 
 **Risultato**:
 ```
@@ -1590,9 +1590,9 @@ Evoluto:   0 crash, training stabile per 20 epochs
 
 ---
 
-## 5️⃣ MODELLO SEQXGPT: Differenze Architetturali
+## 5⃣ MODELLO SEQXGPT: Differenze Architetturali
 
-### 🔴 **Originale**: Complesso e Non Documentato
+###  **Originale**: Complesso e Non Documentato
 
 ```python
 # SeqXGPT/model.py (originale)
@@ -1614,12 +1614,12 @@ class ModelWiseTransformerClassifier(nn.Module):
 ```
 
 **Problemi**:
-- ⛔ Architettura complessa (CRF, position encoding manuale)
-- ⛔ Pensato per sequence labeling, non binary classification
-- ⛔ Difficile da debuggare
-- ⛔ No residual connections chiare
+-  Architettura complessa (CRF, position encoding manuale)
+-  Pensato per sequence labeling, non binary classification
+-  Difficile da debuggare
+-  No residual connections chiare
 
-### 🟢 **Evoluto**: Semplificato e Pulito
+###  **Evoluto**: Semplificato e Pulito
 
 ```python
 # models/seqxgpt.py (evoluto)
@@ -1690,13 +1690,13 @@ class SeqXGPTModel(nn.Module):
 ```
 
 **Miglioramenti**:
-1. ✅ **Architettura chiara**: 5 componenti ben separati
-2. ✅ **Binary classification**: No CRF (overkill per binary task)
-3. ✅ **Residual connections**: CNN e Attention
-4. ✅ **LayerNorm**: Stabilizza training
-5. ✅ **Attention pooling**: Modello impara quali token sono importanti
-6. ✅ **NaN handling integrato**: Dentro forward pass
-7. ✅ **batch_first=True**: Semplifica gestione tensori
+1.  **Architettura chiara**: 5 componenti ben separati
+2.  **Binary classification**: No CRF (overkill per binary task)
+3.  **Residual connections**: CNN e Attention
+4.  **LayerNorm**: Stabilizza training
+5.  **Attention pooling**: Modello impara quali token sono importanti
+6.  **NaN handling integrato**: Dentro forward pass
+7.  **batch_first=True**: Semplifica gestione tensori
 
 **Parametri**:
 ```
@@ -1706,16 +1706,16 @@ Evoluto:   225,922 parametri trainabili
 
 ---
 
-## 6️⃣ VALUTAZIONE: FIX CRITICO!
+## 6⃣ VALUTAZIONE: FIX CRITICO!
 
-### 🔴 **Originale**: BUG Fatale in Eval
+###  **Originale**: BUG Fatale in Eval
 
 ```python
 # eval.py (originale - ipotetico)
 train_features = extract_features(train_texts)
 model.train(train_features)
 
-# 🚨 BUG: Test features NON normalizzate con train stats!
+#  BUG: Test features NON normalizzate con train stats!
 test_features = extract_features(test_texts)
 predictions = model(test_features)
 
@@ -1727,7 +1727,7 @@ predictions = model(test_features)
 - Test set NON normalizzato: Range completamente diverso
 - Modello predice sempre classe maggioritaria (AI) → AUROC random
 
-### 🟢 **Evoluto**: Normalization Corretta
+###  **Evoluto**: Normalization Corretta
 
 ```python
 # eval.py (evoluto)
@@ -1736,7 +1736,7 @@ def load_seqxgpt_model(checkpoint_path, device):
     model = SeqXGPTModel(...).to(device)
     model.load_state_dict(checkpoint['model_state_dict'])
     
-    # 🔑 CRITICAL: Carica statistiche training!
+    #  CRITICAL: Carica statistiche training!
     feature_mean = checkpoint['feature_mean']  # ← SALVATO!
     feature_std = checkpoint['feature_std']    # ← SALVATO!
     
@@ -1751,7 +1751,7 @@ def normalize_features(features, feature_mean, feature_std):
 
 def evaluate_seqxgpt(model, dataloader, device, feature_mean, feature_std):
     for features, masks, labels in dataloader:
-        # ✅ Normalizza con statistiche training!
+        #  Normalizza con statistiche training!
         features = normalize_features(features, feature_mean, feature_std)
         features = features.to(device)
         
@@ -1765,15 +1765,15 @@ SENZA fix:  AUROC ~50% (random)
 CON fix:    AUROC 91.45% (corretto)
 ```
 
-**Differenza**: +41.45% AUROC! 🎯
+**Differenza**: +41.45% AUROC! 
 
 ---
 
-## 7️⃣ BERT BASELINE (COMPLETAMENTE NUOVO!)
+## 7⃣ BERT BASELINE (COMPLETAMENTE NUOVO!)
 
-### 🔴 **Originale**: NON PRESENTE
+###  **Originale**: NON PRESENTE
 
-### 🟢 **Evoluto**: BERT/DistilBERT per Confronto
+###  **Evoluto**: BERT/DistilBERT per Confronto
 
 ```python
 # models/bert_detector.py (nuovo)
@@ -1836,9 +1836,9 @@ Performance loss:    <1% F1
 
 ---
 
-## 8️⃣ CONFIGURAZIONI YAML (NUOVO!)
+## 8⃣ CONFIGURAZIONI YAML (NUOVO!)
 
-### 🔴 **Originale**: Hardcoded
+###  **Originale**: Hardcoded
 
 ```python
 # Tutto hardcoded in train.py
@@ -1848,7 +1848,7 @@ hidden_dim = 128
 # Cambiare = modificare codice
 ```
 
-### 🟢 **Evoluto**: Config Esterni
+###  **Evoluto**: Config Esterni
 
 ```yaml
 # configs/seqxgpt_config.yaml
@@ -1881,17 +1881,17 @@ data:
 ```
 
 **Vantaggi**:
-- ✅ Sperimentazione rapida (no code changes)
-- ✅ Versioning config separato
-- ✅ Condivisione setup facile
+-  Sperimentazione rapida (no code changes)
+-  Versioning config separato
+-  Condivisione setup facile
 
 ---
 
-## 9️⃣ EVASION ATTACKS (NUOVO!)
+## 9⃣ EVASION ATTACKS (NUOVO!)
 
-### 🔴 **Originale**: NON PRESENTE
+###  **Originale**: NON PRESENTE
 
-### 🟢 **Evoluto**: Framework per Robustness Testing
+###  **Evoluto**: Framework per Robustness Testing
 
 ```python
 # attacks/text_augmentation.py
@@ -1933,9 +1933,9 @@ def test_robustness(model, augmenter, test_texts):
 
 ---
 
-## 🔟 DOCUMENTAZIONE
+##  DOCUMENTAZIONE
 
-### 🔴 **Originale**: README Minimo
+###  **Originale**: README Minimo
 
 ```markdown
 # SeqXGPT
@@ -1948,7 +1948,7 @@ pip install -r requirements.txt
 python train.py
 ```
 
-### 🟢 **Evoluto**: Documentazione Completa
+###  **Evoluto**: Documentazione Completa
 
 1. **README.md**: Overview, quick start, results (453 righe)
 2. **explanation.md**: Guida completa (questo file!)
@@ -1962,55 +1962,55 @@ python train.py
 
 ---
 
-## 📊 TABELLA RIASSUNTIVA COMPLETA
+##  TABELLA RIASSUNTIVA COMPLETA
 
 | Feature | Originale | Evoluto | Impatto |
 |---------|-----------|---------|---------|
-| **Architettura Codice** | Monolitica | Modulare | ⭐⭐⭐⭐⭐ Manutenibilità |
-| **Feature Extraction Speed** | ~2.2 it/s | ~4.5 it/s | ⭐⭐⭐⭐ 2x speedup |
-| **NaN Handling** | Assente | 5 layer | ⭐⭐⭐⭐⭐ Training stabile |
-| **Feature Normalization** | No | Z-score + clip | ⭐⭐⭐⭐⭐ Da random a 91% AUROC |
-| **Gradient Clipping** | No | max_norm=1.0 | ⭐⭐⭐⭐ Previene esplosione |
-| **Feature Caching** | No | Pickle cache | ⭐⭐⭐⭐ Risparmia ore |
-| **Config Management** | Hardcoded | YAML esterni | ⭐⭐⭐ Sperimentazione |
-| **BERT Baseline** | Assente | DistilBERT | ⭐⭐⭐⭐⭐ Confronto scientifico |
-| **Eval Normalization** | Bug | Corretta | ⭐⭐⭐⭐⭐ +41% AUROC |
-| **Residual Connections** | Unclear | CNN + Attn | ⭐⭐⭐ Convergenza |
-| **Attention Pooling** | CRF | Learnable weights | ⭐⭐⭐⭐ Più semplice |
-| **CPU Training** | Non ottimizzato | DistilBERT 5k | ⭐⭐⭐⭐ 15h → 15min |
-| **Evasion Attacks** | Assente | Framework | ⭐⭐⭐ Robustness testing |
-| **Riproducibilità** | Limitata | Seed fisso | ⭐⭐⭐⭐ Paper-ready |
-| **Documentazione** | Minima | Completa | ⭐⭐⭐⭐⭐ Comprensione |
+| **Architettura Codice** | Monolitica | Modulare |  Manutenibilità |
+| **Feature Extraction Speed** | ~2.2 it/s | ~4.5 it/s |  2x speedup |
+| **NaN Handling** | Assente | 5 layer |  Training stabile |
+| **Feature Normalization** | No | Z-score + clip |  Da random a 91% AUROC |
+| **Gradient Clipping** | No | max_norm=1.0 |  Previene esplosione |
+| **Feature Caching** | No | Pickle cache |  Risparmia ore |
+| **Config Management** | Hardcoded | YAML esterni |  Sperimentazione |
+| **BERT Baseline** | Assente | DistilBERT |  Confronto scientifico |
+| **Eval Normalization** | Bug | Corretta |  +41% AUROC |
+| **Residual Connections** | Unclear | CNN + Attn |  Convergenza |
+| **Attention Pooling** | CRF | Learnable weights |  Più semplice |
+| **CPU Training** | Non ottimizzato | DistilBERT 5k |  15h → 15min |
+| **Evasion Attacks** | Assente | Framework |  Robustness testing |
+| **Riproducibilità** | Limitata | Seed fisso |  Paper-ready |
+| **Documentazione** | Minima | Completa |  Comprensione |
 
 ---
 
-## 🎯 CONCLUSIONE
+##  CONCLUSIONE
 
-### 📝 Riepilogo: Obiettivi Raggiunti
+###  Riepilogo: Obiettivi Raggiunti
 
 Questo progetto ha **completamente realizzato** tutti gli obiettivi proposti:
 
-#### ✅ 1. Dataset e Pipeline Modulare
+####  1. Dataset e Pipeline Modulare
 - **SeqXGPT-Bench** implementato come dataset principale (36k samples)
 - **Codice modulare** con separazione chiara: `data/`, `models/`, `features/`, `configs/`
 - **Configurazioni YAML** per sperimentazione senza modificare codice
 
-#### ✅ 2. SeqXGPT-Style Detector
+####  2. SeqXGPT-Style Detector
 - **GPT-2 feature extraction**: log-prob, surprisal, entropy per ogni token
 - **CNN (3 layers) + Self-Attention (4 heads)** seguendo architettura paper
 - **Risultato**: F1=92.93%, AUROC=91.45%, Precision=92.23%
 
-#### ✅ 3. BERT Baseline
+####  3. BERT Baseline
 - **DistilBERT** (variante ottimizzata di BERT-base) implementato
 - **Same splits** (seed=42) per confronto diretto
 - **Risultato**: F1=92.18%, AUROC=88.41%, Recall=97.53%
 
-#### ✅ 4. Unified Evaluation Pipeline
+####  4. Unified Evaluation Pipeline
 - **Script unificato** `eval.py` per entrambi i modelli
 - **Tutte le metriche** richieste: Accuracy, Precision, Recall, F1, AUROC
 - **Visualizzazioni**: ROC curves, confusion matrices, tabelle comparative
 
-### 🔑 Differenze Chiave vs Repository Originale
+###  Differenze Chiave vs Repository Originale
 
 Il progetto **non è una semplice copia**, ma una **ristrutturazione completa** con:
 
@@ -2037,27 +2037,27 @@ Il progetto **non è una semplice copia**, ma una **ristrutturazione completa** 
 8. **Evasion Attacks**: Framework per robustness testing
 9. **Documentazione Completa**: README + explanation.md
 
-### 📊 Impatto Finale
+###  Impatto Finale
 
 ```
 Repository Originale SeqXGPT:
-❌ Training: Crash frequenti per NaN
-❌ Eval: AUROC ~50% (bug normalization)
-❌ CPU: Non praticabile
-❌ Baseline: Assente
-❌ Pipeline: Codice monolitico
+ Training: Crash frequenti per NaN
+ Eval: AUROC ~50% (bug normalization)
+ CPU: Non praticabile
+ Baseline: Assente
+ Pipeline: Codice monolitico
 
 Seqxgpt-mlsec-project (Questo Progetto):
-✅ Training: Stabile, 0 crash, 20 epochs
-✅ Eval: AUROC 91.45% (corretto)
-✅ CPU: 15 minuti per BERT, praticabile
-✅ Baseline: DistilBERT comparato
-✅ Pipeline: Modulare, YAML configs, unified eval
-✅ Confronto: SeqXGPT (feature-based) vs BERT (fine-tuning)
-✅ Risultato: SeqXGPT vince in precision/F1, BERT in recall
+ Training: Stabile, 0 crash, 20 epochs
+ Eval: AUROC 91.45% (corretto)
+ CPU: 15 minuti per BERT, praticabile
+ Baseline: DistilBERT comparato
+ Pipeline: Modulare, YAML configs, unified eval
+ Confronto: SeqXGPT (feature-based) vs BERT (fine-tuning)
+ Risultato: SeqXGPT vince in precision/F1, BERT in recall
 ```
 
-### 🌟 Risultato Principale
+###  Risultato Principale
 
 Il progetto dimostra che l'**approccio feature-based (SeqXGPT)** con log-probabilities GPT-2 + CNN + Self-Attention **supera il fine-tuning standard (BERT)** per AI text detection, con:
 - **+4.84% precision** (92.23% vs 87.39%)
@@ -2068,7 +2068,7 @@ Trade-off: BERT ha recall più alta (+3.88%), utile quando il costo di falsi neg
 
 ---
 
-## 📚 RIFERIMENTI
+##  RIFERIMENTI
 
 - **Paper Originale**: [SeqXGPT: Sentence-Level AI-Generated Text Detection](https://arxiv.org/abs/2310.08903)
 - **Repository Originale**: [SeqXGPT GitHub](https://github.com/Jihuai-wpy/SeqXGPT)
